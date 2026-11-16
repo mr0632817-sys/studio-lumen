@@ -1,8 +1,8 @@
 import * as THREE from 'https://esm.sh/three@0.165.0';
 
 // ============================================================================
-// Advanced Three.js 3D Background — Scroll-Reactive Glass Spheres & Torus Meshes
-// Mobile-optimized: capped pixel ratio, responsive camera, centered objects
+// Advanced Three.js 3D Background — Apple-Grade Liquid Glass Centerpiece
+// Responsive camera & scale for Desktop (rich full-bleed) vs Mobile (centered, tighter)
 // ============================================================================
 let scene, camera, renderer, clock;
 let meshGroup;
@@ -25,79 +25,79 @@ function initThree() {
   isMobile = detectMobile();
 
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0xf8fafc, 0.005);
+  scene.fog = new THREE.FogExp2(0xf8fafc, 0.006);
 
-  // Mobile: move camera further back so wide 3D spread fits on narrow screens
-  const camZ = isMobile ? 24 : 14;
+  // Camera: Desktop Z=14, Mobile Z = 14 * 1.65 ≈ 23
+  const camZ = isMobile ? 23 : 14;
   camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
   camera.position.set(0, 0, camZ);
 
-  // Mobile: cap pixel ratio at 1.5 to save GPU/battery; desktop up to 2
+  // Mobile: cap pixel ratio at 1.5; desktop up to 2
   const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2);
 
   renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(pixelRatio);
   renderer.toneMapping = THREE.ReinhardToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMappingExposure = 1.15;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   // Ambient light — soft base
-  ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 0.3 : 0.4);
+  ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 0.35 : 0.45);
   scene.add(ambientLight);
 
-  // Point light 1 — accent blue
-  pointLight1 = new THREE.PointLight(0x0ea5e9, isMobile ? 1.5 : 2.0, 100);
-  pointLight1.position.set(5, 5, 5);
+  // Point light 1 — crisp blue accent
+  pointLight1 = new THREE.PointLight(0x0ea5e9, isMobile ? 2.0 : 3.0, 100);
+  pointLight1.position.set(6, 6, 8);
   scene.add(pointLight1);
 
-  // Point light 2 — soft fill
-  pointLight2 = new THREE.PointLight(0xffffff, isMobile ? 0.8 : 1.0, 100);
-  pointLight2.position.set(-5, -5, 5);
+  // Point light 2 — warm fill for dimensional glass refraction
+  pointLight2 = new THREE.PointLight(0xffffff, isMobile ? 1.0 : 1.5, 100);
+  pointLight2.position.set(-6, -4, 6);
   scene.add(pointLight2);
 
-  // Main mesh group — scaled down on mobile to fit narrow screens
+  // Main mesh group — scaled down on mobile so entire sculpture fits narrow screens
   meshGroup = new THREE.Group();
-  meshGroup.scale.setScalar(isMobile ? 0.6 : 1.0);
+  meshGroup.scale.setScalar(isMobile ? 0.72 : 1.0);
   scene.add(meshGroup);
 
-  // Create glassmorphic reflective spheres — fewer on mobile
-  const sphereCount = isMobile ? 5 : 8;
-  const sphereSpread = isMobile ? 2.5 : 20; // keep spheres closer to center on mobile
+  // Create glass spheres — fewer on mobile, constrained to center
+  const sphereCount = isMobile ? 6 : 10;
+  const sphereSpread = isMobile ? 1.8 : 16; // keep within -1.8 to 1.8 on mobile
   for (let i = 0; i < sphereCount; i++) {
-    const radius = 0.4 + Math.random() * 0.8;
-    const geometry = new THREE.SphereGeometry(radius, isMobile ? 24 : 64, isMobile ? 24 : 64);
+    const radius = 0.35 + Math.random() * 0.6;
+    const geometry = new THREE.SphereGeometry(radius, isMobile ? 32 : 64, isMobile ? 32 : 64);
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
-      metalness: 0.3,
-      roughness: 0.08,
-      transmission: 0.6,
+      metalness: 0.25,
+      roughness: 0.06,
+      transmission: 0.72,
       transparent: true,
-      opacity: 0.85,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.04,
+      opacity: 0.88,
+      clearcoat: 1.2,
+      clearcoatRoughness: 0.03,
       side: THREE.DoubleSide,
     });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.set(
       (Math.random() - 0.5) * sphereSpread,
-      (Math.random() - 0.5) * 12,
+      (Math.random() - 0.5) * 10,
       (Math.random() - 0.5) * sphereSpread
     );
     sphere.castShadow = true;
     sphere.receiveShadow = true;
     sphere.userData = {
-      floatSpeed: 0.6 + Math.random() * 1.2,
+      floatSpeed: 0.5 + Math.random() * 1.0,
       floatOffset: Math.random() * Math.PI * 2,
       rotateSpeed: {
-        x: 0.15 + Math.random() * 0.25,
-        y: 0.15 + Math.random() * 0.25,
-        z: 0.1 + Math.random() * 0.2,
+        x: 0.12 + Math.random() * 0.18,
+        y: 0.12 + Math.random() * 0.18,
+        z: 0.08 + Math.random() * 0.12,
       },
       baseY: sphere.position.y,
       baseX: sphere.position.x,
       baseZ: sphere.position.z,
-      driftMultiplier: 0.3 + Math.random() * 0.5,
+      driftMultiplier: 0.3 + Math.random() * 0.4,
     };
     scene.add(sphere);
     spheres.push(sphere);
@@ -105,18 +105,18 @@ function initThree() {
 
   // Create glass torus knots — fewer on mobile
   const torusCount = isMobile ? 2 : 3;
-  const torusSpread = isMobile ? 2.0 : 15; // keep torus knots closer to center on mobile
+  const torusSpread = isMobile ? 1.6 : 14;
   for (let i = 0; i < torusCount; i++) {
-    const geometry = new THREE.TorusKnotGeometry(0.7 + i * 0.4, 0.25 + i * 0.1, isMobile ? 64 : 128, isMobile ? 16 : 32);
+    const geometry = new THREE.TorusKnotGeometry(0.6 + i * 0.35, 0.22 + i * 0.12, isMobile ? 64 : 128, isMobile ? 16 : 32);
     const material = new THREE.MeshPhysicalMaterial({
       color: 0x0ea5e9,
-      metalness: 0.6,
-      roughness: 0.1,
-      transmission: 0.7,
+      metalness: 0.7,
+      roughness: 0.08,
+      transmission: 0.85,
       transparent: true,
-      opacity: 0.8,
-      clearcoat: 1.2,
-      clearcoatRoughness: 0.05,
+      opacity: 0.82,
+      clearcoat: 1.4,
+      clearcoatRoughness: 0.04,
       side: THREE.DoubleSide,
     });
     const torus = new THREE.Mesh(geometry, material);
@@ -128,16 +128,16 @@ function initThree() {
     torus.castShadow = true;
     torus.receiveShadow = true;
     torus.userData = {
-      floatSpeed: 0.4 + Math.random() * 0.8,
+      floatSpeed: 0.4 + Math.random() * 0.7,
       floatOffset: Math.random() * Math.PI * 2,
       rotateSpeed: {
-        x: 0.2 + Math.random() * 0.3,
-        y: 0.2 + Math.random() * 0.3,
+        x: 0.18 + Math.random() * 0.22,
+        y: 0.18 + Math.random() * 0.22,
       },
       baseY: torus.position.y,
       baseX: torus.position.x,
       baseZ: torus.position.z,
-      driftMultiplier: 0.4 + Math.random() * 0.6,
+      driftMultiplier: 0.4 + Math.random() * 0.5,
     };
     scene.add(torus);
     torusKnots.push(torus);
@@ -159,7 +159,7 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   // Adjust camera Z for mobile framing
-  const camZ = isMobile ? 24 : 14;
+  const camZ = isMobile ? 23 : 14;
   camera.position.z = camZ;
 
   // Mobile: cap pixel ratio at 1.5; desktop up to 2
@@ -169,7 +169,7 @@ function onWindowResize() {
 
   // Update group scale when crossing mobile/desktop boundary
   if (wasMobile !== isMobile) {
-    meshGroup.scale.setScalar(isMobile ? 0.6 : 1.0);
+    meshGroup.scale.setScalar(isMobile ? 0.72 : 1.0);
   }
 }
 
@@ -200,10 +200,10 @@ function animateThree() {
     // Vertical float
     sphere.position.y =
       sphere.userData.baseY +
-      Math.sin(elapsed * sphere.userData.floatSpeed + sphere.userData.floatOffset) * 0.7;
+      Math.sin(elapsed * sphere.userData.floatSpeed + sphere.userData.floatOffset) * 0.55;
 
     // Scroll-driven vertical shift
-    sphere.position.y += Math.sin(scrollProgress * Math.PI * 4 + i) * 0.4;
+    sphere.position.y += Math.sin(scrollProgress * Math.PI * 3 + i) * 0.35;
 
     // Rotation
     sphere.rotation.x += sphere.userData.rotateSpeed.x * 0.4;
@@ -211,57 +211,51 @@ function animateThree() {
     sphere.rotation.z += sphere.userData.rotateSpeed.z * 0.3;
 
     // Mouse/touch drift
-    sphere.position.x += (mouseX * 3 * sphere.userData.driftMultiplier - sphere.position.x) * 0.02;
-    sphere.position.y += (mouseY * 2 * sphere.userData.driftMultiplier - sphere.position.y) * 0.02;
+    sphere.position.x += (mouseX * 2.5 * sphere.userData.driftMultiplier - sphere.position.x) * 0.02;
+    sphere.position.y += (mouseY * 1.8 * sphere.userData.driftMultiplier - sphere.position.y) * 0.02;
 
-    // Scroll-driven horizontal drift
-    sphere.position.x += Math.cos(scrollProgress * Math.PI * 2 + i) * 0.3;
+    // Scroll-driven horizontal drift (constrained)
+    sphere.position.x += Math.cos(scrollProgress * Math.PI * 2 + i) * 0.25;
   });
 
-  // Animate torus knots — react more strongly to scroll
+  // Animate torus knots — react to scroll
   torusKnots.forEach((torus, i) => {
-    // Base rotation
     torus.rotation.x += torus.userData.rotateSpeed.x * 0.5;
     torus.rotation.y += torus.userData.rotateSpeed.y * 0.5;
 
-    // Vertical float
     torus.position.y =
       torus.userData.baseY +
-      Math.sin(elapsed * torus.userData.floatSpeed + torus.userData.floatOffset) * 0.6;
+      Math.sin(elapsed * torus.userData.floatSpeed + torus.userData.floatOffset) * 0.5;
 
-    // Scroll-driven vertical lift (stronger effect)
-    torus.position.y += Math.sin(scrollProgress * Math.PI * 3 + i * 2) * 1.0;
+    torus.position.y += Math.sin(scrollProgress * Math.PI * 2.5 + i * 2) * 0.8;
 
-    // Scroll-driven horizontal shift
     torus.position.x =
       torus.userData.baseX +
-      Math.cos(scrollProgress * Math.PI * 2.5 + i) * 1.5;
+      Math.cos(scrollProgress * Math.PI * 2 + i) * 1.2;
 
-    // Scroll-driven Z shift (depth movement)
     torus.position.z =
       torus.userData.baseZ +
-      Math.sin(scrollProgress * Math.PI * 1.5 + i) * 1.0;
+      Math.sin(scrollProgress * Math.PI * 1.2 + i) * 0.8;
 
-    // Mouse/touch drift
-    torus.position.x += (mouseX * 2 * torus.userData.driftMultiplier - torus.position.x) * 0.02;
+    torus.position.x += (mouseX * 1.8 * torus.userData.driftMultiplier - torus.position.x) * 0.02;
   });
 
   // Group-level slow rotation
-  meshGroup.rotation.y = elapsed * 0.05 + mouseX * 0.1;
-  meshGroup.rotation.x = Math.sin(elapsed * 0.15) * 0.1;
+  meshGroup.rotation.y = elapsed * 0.04 + mouseX * 0.08;
+  meshGroup.rotation.x = Math.sin(elapsed * 0.12) * 0.08;
 
   // Camera subtle drift
-  camera.position.x += (mouseX * 1.0 - camera.position.x) * 0.04;
-  camera.position.y += (-mouseY * 1.0 - camera.position.y) * 0.04;
+  camera.position.x += (mouseX * 0.8 - camera.position.x) * 0.03;
+  camera.position.y += (-mouseY * 0.8 - camera.position.y) * 0.03;
   camera.lookAt(0, 0, 0);
 
   // Scroll-driven light movement
-  pointLight1.position.x = Math.sin(scrollProgress * Math.PI * 2) * 6;
-  pointLight1.position.y = Math.cos(scrollProgress * Math.PI) * 6 + 4;
-  pointLight1.color.setHSL(0.55 + scrollProgress * 0.1, 0.8, 0.6);
+  pointLight1.position.x = Math.sin(scrollProgress * Math.PI * 1.5) * 7;
+  pointLight1.position.y = Math.cos(scrollProgress * Math.PI) * 7 + 4;
+  pointLight1.color.setHSL(0.55 + scrollProgress * 0.08, 0.85, 0.65);
 
-  pointLight2.position.x = Math.cos(scrollProgress * Math.PI * 1.5) * 6;
-  pointLight2.position.y = Math.sin(scrollProgress * Math.PI * 1.5) * 6 - 2;
+  pointLight2.position.x = Math.cos(scrollProgress * Math.PI * 1.2) * 7;
+  pointLight2.position.y = Math.sin(scrollProgress * Math.PI * 1.2) * 6 - 1;
 
   renderer.render(scene, camera);
 }
@@ -272,8 +266,8 @@ function animateThree() {
 function initScrollReveals() {
   const observerOptions = {
     root: null,
-    rootMargin: '0px 0px -80px 0px',
-    threshold: 0.12,
+    rootMargin: '0px 0px -90px 0px',
+    threshold: 0.1,
   };
 
   const observer = new IntersectionObserver((entries) => {
@@ -327,7 +321,6 @@ function initMobileMenu() {
     }
   });
 
-  // Close menu when clicking a link
   mobileNav.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', () => {
       mobileNav.classList.remove('open');
