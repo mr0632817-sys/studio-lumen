@@ -2,7 +2,7 @@ import * as THREE from 'https://esm.sh/three@0.165.0';
 
 // ============================================================================
 // Advanced Three.js 3D Background — Scroll-Reactive Glass Spheres & Torus Meshes
-// Mobile-optimized: capped pixel ratio, reduced geometry on small screens
+// Mobile-optimized: capped pixel ratio, responsive camera, centered objects
 // ============================================================================
 let scene, camera, renderer, clock;
 let meshGroup;
@@ -27,8 +27,10 @@ function initThree() {
   scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0xf8fafc, 0.005);
 
+  // Mobile: move camera further back so wide 3D spread fits on narrow screens
+  const camZ = isMobile ? 24 : 14;
   camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
-  camera.position.set(0, 0, 14);
+  camera.position.set(0, 0, camZ);
 
   // Mobile: cap pixel ratio at 1.5 to save GPU/battery; desktop up to 2
   const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2);
@@ -54,12 +56,14 @@ function initThree() {
   pointLight2.position.set(-5, -5, 5);
   scene.add(pointLight2);
 
-  // Main mesh group
+  // Main mesh group — scaled down on mobile to fit narrow screens
   meshGroup = new THREE.Group();
+  meshGroup.scale.setScalar(isMobile ? 0.6 : 1.0);
   scene.add(meshGroup);
 
   // Create glassmorphic reflective spheres — fewer on mobile
   const sphereCount = isMobile ? 5 : 8;
+  const sphereSpread = isMobile ? 2.5 : 20; // keep spheres closer to center on mobile
   for (let i = 0; i < sphereCount; i++) {
     const radius = 0.4 + Math.random() * 0.8;
     const geometry = new THREE.SphereGeometry(radius, isMobile ? 24 : 64, isMobile ? 24 : 64);
@@ -76,9 +80,9 @@ function initThree() {
     });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.set(
-      (Math.random() - 0.5) * 20,
-      (Math.random() - 0.5) * 15,
-      (Math.random() - 0.5) * 20
+      (Math.random() - 0.5) * sphereSpread,
+      (Math.random() - 0.5) * 12,
+      (Math.random() - 0.5) * sphereSpread
     );
     sphere.castShadow = true;
     sphere.receiveShadow = true;
@@ -101,6 +105,7 @@ function initThree() {
 
   // Create glass torus knots — fewer on mobile
   const torusCount = isMobile ? 2 : 3;
+  const torusSpread = isMobile ? 2.0 : 15; // keep torus knots closer to center on mobile
   for (let i = 0; i < torusCount; i++) {
     const geometry = new THREE.TorusKnotGeometry(0.7 + i * 0.4, 0.25 + i * 0.1, isMobile ? 64 : 128, isMobile ? 16 : 32);
     const material = new THREE.MeshPhysicalMaterial({
@@ -116,9 +121,9 @@ function initThree() {
     });
     const torus = new THREE.Mesh(geometry, material);
     torus.position.set(
-      (Math.random() - 0.5) * 15,
-      (Math.random() - 0.5) * 10,
-      (Math.random() - 0.5) * 15
+      (Math.random() - 0.5) * torusSpread,
+      (Math.random() - 0.5) * 8,
+      (Math.random() - 0.5) * torusSpread
     );
     torus.castShadow = true;
     torus.receiveShadow = true;
@@ -153,14 +158,18 @@ function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
 
+  // Adjust camera Z for mobile framing
+  const camZ = isMobile ? 24 : 14;
+  camera.position.z = camZ;
+
   // Mobile: cap pixel ratio at 1.5; desktop up to 2
   const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(pixelRatio);
 
-  // Recreate scene if mobile/desktop boundary crossed (optional optimization)
+  // Update group scale when crossing mobile/desktop boundary
   if (wasMobile !== isMobile) {
-    // Could reload geometry here if needed; for now just resize
+    meshGroup.scale.setScalar(isMobile ? 0.6 : 1.0);
   }
 }
 

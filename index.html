@@ -89,14 +89,23 @@
         opacity: 1;
         transform: translateY(0);
       }
-      /* Rounded frosted glass container */
+      /* Rounded frosted glass container — mobile: more translucent white overlay + subtle blur */
       .glass-panel {
         background: rgba(255, 255, 255, 0.6);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.8);
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
         border-radius: 1.75rem;
+      }
+
+      /* Desktop: slightly less opaque white overlay + stronger blur */
+      @media (min-width: 768px) {
+        .glass-panel {
+          background: rgba(255, 255, 255, 0.45);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+        }
       }
       /* Glass card inside panels */
       .glass-card {
