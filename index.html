@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Studio Lumen — Creative Technology</title>
+    <meta name="description" content="Exploring the intersection of design, code, and 3D experience." />
+    <!-- Google Fonts: Inter + Space Grotesk -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Tailwind CSS via Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['"Space Grotesk"', 'sans-serif'],
+            },
+            colors: {
+              accent: '#0ea5e9',
+            },
+            animation: {
+              'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+              'float': 'float 6s ease-in-out infinite',
+              'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
+            },
+            keyframes: {
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(30px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                '50%': { transform: 'translateY(-16px) rotate(2deg)' },
+              },
+              pulseGlow: {
+                '0%, 100%': { boxShadow: '0 0 20px rgba(14, 165, 233, 0.15)' },
+                '50%': { boxShadow: '0 0 40px rgba(14, 165, 233, 0.35)' },
+              },
+            },
+            backdropBlur: {
+              '2xl': '24px',
+            },
+          },
+        },
+      }
+    </script>
+    <!-- Three.js via CDN -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://esm.sh/three@0.165.0"
+        }
+      }
+    </script>
+    <style>
+      /* Three.js canvas covers entire viewport and document height, locked behind content */
+      #bg-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 0;
+        pointer-events: none;
+        display: block;
+        background: #ffffff;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #f8fafc;
+        color: #0f172a;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* Custom animations */
+      .scroll-reveal {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+      }
+      .scroll-reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      /* Rounded frosted glass container */
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        border-radius: 1.75rem;
+      }
+      /* Glass card inside panels */
+      .glass-card {
+        position: relative;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 1.25rem;
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
+      }
+      .glass-card:hover {
+        border-color: rgba(14, 165, 233, 0.5);
+        background: rgba(255, 255, 255, 0.55);
+        box-shadow: 0 20px 50px -10px rgba(14, 165, 233, 0.12);
+        transform: translateY(-4px);
+      }
+      .glass-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(14, 165, 233, 0.05) 0%,
+          rgba(255, 255, 255, 0) 40%,
+          rgba(14, 165, 233, 0.05) 100%
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: inherit;
+      }
+      .glass-card:hover::before {
+        opacity: 1;
+      }
+      .text-balance {
+        text-wrap: balance;
+      }
+      /* Section gap for seamless editorial flow */
+      .section-spacing {
+        margin-bottom: 4rem;
+      }
+    </style>
+  </head>
+  <body class="antialiased bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900 overflow-x-hidden selection:bg-accent selection:text-white">
+    <!-- Three.js Canvas Background — covers entire viewport, fixed behind all content -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Scroll Progress Indicator -->
+    <div class="fixed top-0 left-0 h-1 bg-slate-400/30 z-40">
+      <div id="scroll-progress" class="h-full bg-slate-400 w-0 transition-all duration-100"></div>
+    </div>
+
+    <!-- Glassmorphic Fixed Navbar -->
+    <nav class="fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white/40 backdrop-blur-2xl border-b border-white/80 shadow-2xl shadow-black/5">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a href="#" class="font-display text-xl font-bold tracking-tighter bg-accent text-white px-4 py-1.5 rounded-xl shadow-[0_0_20px_rgba(14,165,233,0.4)]">
+          Lumen
+        </a>
+        <div class="hidden md:flex gap-8 text-sm font-medium text-slate-600">
+          <a href="#work" class="hover:text-accent transition-colors">Work</a>
+          <a href="#about" class="hover:text-accent transition-colors">About</a>
+          <a href="#contact" class="hover:text-accent transition-colors">Contact</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="relative z-10 min-h-screen pt-24">
+      <!-- Hero Section — Glass Panel -->
+      <section class="relative min-h-[85vh] flex flex-col justify-center items-center px-6 py-12 scroll-reveal">
+        <div class="glass-panel p-10 md:p-16 max-w-4xl w-full text-center">
+          <span class="inline-block mb-6 px-4 py-1.5 bg-accent/10 text-accent text-xs font-mono tracking-widest rounded-full border border-accent/20 shadow-[0_0_15px_rgba(14,165,233,0.2)]">
+            Scroll down to discover &rarr;
+          </span>
+          <h1 class="font-display text-6xl md:text-8xl font-bold tracking-tighter mb-6 text-slate-900 text-balance leading-[1.1]">
+            Crafting <br />
+            <span class="bg-gradient-to-r from-accent via-slate-900 to-accent bg-clip-text text-transparent">digital experiences</span>
+          </h1>
+          <p class="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mt-4 mb-10 font-light leading-relaxed">
+            A studio exploring the intersection of design, code, and immersive 3D.
+          </p>
+          <a href="#work" class="inline-block px-10 py-5 bg-slate-900 text-white font-semibold rounded-full hover:bg-accent transition-all shadow-[0_0_30px_rgba(15,23,42,0.3)] hover:shadow-[0_0_50px_rgba(14,165,233,0.5)]">
+            View Work
+          </a>
+        </div>
+      </section>
+
+      <!-- Work Section — Glass Panel with Card Grid -->
+      <section class="relative py-32 px-6 scroll-reveal section-spacing">
+        <div class="glass-panel p-10 md:p-16 max-w-7xl mx-auto">
+          <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+            <div>
+              <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tighter mb-4 text-slate-900">Selected Work</h2>
+              <p class="text-slate-600 max-w-md">Exploring digital craft through interactive media.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <!-- Card 1: Project Aurora -->
+            <div class="group glass-card scroll-card hover:pulse-glow p-8">
+              <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              <div class="flex items-center gap-2 text-xs font-mono text-accent mb-4">01 &bull; WebGL &bull; Three.js</div>
+              <h3 class="font-display text-xl font-bold tracking-tight mb-3 text-slate-900">Project Aurora</h3>
+              <p class="text-sm text-slate-600 leading-relaxed mb-6 text-balance">An immersive data visualization experience exploring real-time generative systems.</p>
+              <div class="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent text-xs font-bold group-hover:scale-110 transition-transform">A</div>
+            </div>
+
+            <!-- Card 2: Project Nexus -->
+            <div class="group glass-card scroll-card hover:pulse-glow p-8">
+              <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              <div class="flex items-center gap-2 text-xs font-mono text-accent mb-4">02 &bull; GLSL &bull; Shaders</div>
+              <h3 class="font-display text-xl font-bold tracking-tight mb-3 text-slate-900">Project Nexus</h3>
+              <p class="text-sm text-slate-600 leading-relaxed mb-6 text-balance">A fluid-simulation driven interface responding to cursor and scroll input.</p>
+              <div class="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent text-xs font-bold group-hover:scale-110 transition-transform">N</div>
+            </div>
+
+            <!-- Card 3: Project Prism -->
+            <div class="group glass-card scroll-card hover:pulse-glow p-8">
+              <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              <div class="flex items-center gap-2 text-xs font-mono text-accent mb-4">03 &bull; CSS &bull; Motion</div>
+              <h3 class="font-display text-xl font-bold tracking-tight mb-3 text-slate-900">Project Prism</h3>
+              <p class="text-sm text-slate-600 leading-relaxed mb-6 text-balance">Minimal editorial layout with scroll-synced typography and motion.</p>
+              <div class="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent text-xs font-bold group-hover:scale-110 transition-transform">P</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Section — Glass Panel -->
+      <section class="relative py-32 px-6 scroll-reveal section-spacing">
+        <div class="glass-panel p-10 md:p-16 max-w-3xl mx-auto text-center">
+          <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tighter mb-8 text-slate-900">About Studio Lumen</h2>
+          <p class="text-lg text-slate-600 leading-relaxed mb-8 max-w-lg mx-auto text-balance">
+            We build thoughtful digital products and experiences. Our work blends minimal aesthetic
+            with technical depth — from custom shaders to performant web applications.
+          </p>
+          <div class="flex flex-col md:flex-row justify-center gap-6">
+            <a href="#" class="px-6 py-3 border border-slate-300 rounded-full hover:bg-slate-100 hover:border-accent/50 transition-all bg-white/30">Twitter</a>
+            <a href="#" class="px-6 py-3 border border-slate-300 rounded-full hover:bg-slate-100 hover:border-accent/50 transition-all bg-white/30">LinkedIn</a>
+            <a href="#" class="px-6 py-3 border border-slate-300 rounded-full hover:bg-slate-100 hover:border-accent/50 transition-all bg-white/30">Instagram</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact Section — Glass Panel -->
+      <section class="relative py-32 px-6 scroll-reveal section-spacing">
+        <div class="glass-panel p-10 md:p-16 max-w-2xl mx-auto text-center">
+          <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tighter mb-6 text-slate-900">Get in touch</h2>
+          <p class="text-slate-600 mb-10">Starting a new project? We&rsquo;d love to hear from you.</p>
+          <a href="mailto:hello@studiolumen.example" class="inline-block px-10 py-5 bg-slate-900 text-white font-semibold rounded-full hover:bg-accent transition-all shadow-[0_0_30px_rgba(15,23,42,0.3)] hover:shadow-[0_0_50px_rgba(14,165,233,0.5)]">
+            hello@studiolumen.example
+          </a>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="relative py-12 px-6 text-center">
+        <p class="text-xs text-slate-500">
+          Studio Lumen &middot; Original placeholder design &mdash; no third-party assets used
+        </p>
+      </footer>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
