@@ -2,7 +2,7 @@ import * as THREE from 'https://esm.sh/three@0.165.0';
 
 // ============================================================================
 // Advanced Three.js 3D Background — Apple-Grade Liquid Glass Centerpiece
-// Responsive camera & scale for Desktop (rich full-bleed) vs Mobile (centered, tighter)
+// Scroll-driven choreography + responsive camera + 60fps performance
 // ============================================================================
 let scene, camera, renderer, clock;
 let meshGroup;
@@ -15,6 +15,11 @@ let mouseX = 0;
 let mouseY = 0;
 let scrollProgress = 0;
 let isMobile = false;
+let isPaused = false;
+let prefersReducedMotion = false;
+let animationId = null;
+
+const prefersReducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 function detectMobile() {
   return window.innerWidth < 768;
@@ -23,17 +28,21 @@ function detectMobile() {
 function initThree() {
   const canvas = document.getElementById('bg-canvas');
   isMobile = detectMobile();
+  prefersReducedMotion = prefersReducedMotionQuery.matches;
+  prefersReducedMotionQuery.addEventListener('change', (e) => {
+    prefersReducedMotion = e.matches;
+  });
 
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0xf8fafc, 0.006);
+  scene.fog = new THREE.FogExp2(0xf8fafc, isMobile ? 0.004 : 0.006);
 
   // Camera: Desktop Z=14, Mobile Z = 14 * 1.65 ≈ 23
   const camZ = isMobile ? 23 : 14;
   camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
   camera.position.set(0, 0, camZ);
 
-  // Mobile: cap pixel ratio at 1.5; desktop up to 2
-  const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2);
+  // Lock pixelRatio at min(devicePixelRatio, 2)
+  const pixelRatio = Math.min(window.devicePixelRatio, 2);
 
   renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -149,6 +158,7 @@ function initThree() {
   window.addEventListener('mousemove', onMouseMove);
   window.addEventListener('touchmove', onTouchMove, { passive: true });
   window.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('visibilitychange', onVisibilityChange);
   onScroll(); // init scroll progress
 }
 
@@ -163,7 +173,7 @@ function onWindowResize() {
   camera.position.z = camZ;
 
   // Mobile: cap pixel ratio at 1.5; desktop up to 2
-  const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2);
+  const pixelRatio = Math.min(window.devicePixelRatio, 2);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(pixelRatio);
 
@@ -192,8 +202,55 @@ function onScroll() {
   scrollProgress = height > 0 ? winScroll / height : 0;
 }
 
-function animateThree() {
+function onVisibilityChange() {
+  isPaused = document.hidden;
+  if (!isPaused && animationId === null) {
+    animate();
+  }
+}
+
+function getScrollCameraTarget() {
+  // Scroll-driven camera Z: zoomed-in at Hero (0), shifts at About (~0.25),
+  // pulled back at Software (~0.5), gliding back at Contact (~0.75+)
+  const isMob = isMobile;
+  const baseZ = isMob ? 23 : 14;
+
+  let targetZ = baseZ;
+  let targetY = 0;
+  let targetX = 0;
+
+  if (scrollProgress < 0.15) {
+    // Hero: closer camera
+    targetZ = isMob ? 20 : 12;
+  } else if (scrollProgress < 0.40) {
+    // About: slight shift
+    targetZ = isMob ? 22 : 13;
+    targetY = (scrollProgress - 0.15) / 0.25 * 0.5;
+  } else if (scrollProgress < 0.65) {
+    // Software: pulled back for text clarity
+    targetZ = isMob ? 24 : 15;
+    targetY = 0.5 - ((scrollProgress - 0.40) / 0.25 * 0.5);
+  } else {
+    // Contact: gliding back
+    targetZ = isMob ? 23 : 14;
+  }
+
+  return { targetZ, targetY, targetX };
+}
+
+function animate() {
+  if (isPaused) {
+    animationId = null;
+    return;
+  }
+
   const elapsed = clock.getElapsedTime();
+  const { targetZ, targetY, targetX } = getScrollCameraTarget();
+
+  // Smooth camera interpolation
+  camera.position.z += (targetZ - camera.position.z) * 0.05;
+  camera.position.y += (targetY - camera.position.y) * 0.05;
+  camera.position.x += (targetX - camera.position.x) * 0.05;
 
   // Animate spheres — float, rotate, react to scroll
   spheres.forEach((sphere, i) => {
@@ -258,6 +315,7 @@ function animateThree() {
   pointLight2.position.y = Math.sin(scrollProgress * Math.PI * 1.2) * 6 - 1;
 
   renderer.render(scene, camera);
+  animationId = requestAnimationFrame(animate);
 }
 
 // ============================================================================
@@ -273,7 +331,12 @@ function initScrollReveals() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
+        if (!prefersReducedMotion) {
+          entry.target.classList.add('visible');
+        } else {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'none';
+        }
         observer.unobserve(entry.target);
       }
     });
@@ -330,6 +393,49 @@ function initMobileMenu() {
 }
 
 // ============================================================================
+// Copy Email with toast
+// ============================================================================
+function initCopyEmail() {
+  const emailLink = document.querySelector('a[href^="mailto:"]');
+  if (!emailLink) return;
+
+  emailLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText('iftiazabm@gmail.com').then(() => {
+      showToast('Email copied!');
+    });
+  });
+}
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.85);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-family: Inter, sans-serif;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  `;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.style.opacity = '1'; });
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
+
+// ============================================================================
 // Initialize
 // ============================================================================
 function init() {
@@ -337,13 +443,14 @@ function init() {
   initScrollReveals();
   initScrollProgress();
   initMobileMenu();
+  initCopyEmail();
 
-  function loop() {
-    onScroll(); // keep scroll progress synced
-    animateThree();
-    requestAnimationFrame(loop);
+  if (!prefersReducedMotion) {
+    animate();
+  } else {
+    // Still render once for static scene
+    renderer.render(scene, camera);
   }
-  loop();
 }
 
 if (document.readyState === 'loading') {

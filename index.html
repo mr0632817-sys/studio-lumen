@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>ABM IT — ABM Iftiazur Rahman</title>
     <meta name="description" content="ABM Iftiazur Rahman — Founder & Builder at ABM IT. Building offline-first web applications, Android tools, and interactive 3D experiences." />
-    <!-- Google Fonts: Inter + Noto Sans Bengali -->
+    <!-- Google Fonts: Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Google Fonts: Inter + Hind Siliguri + Noto Sans Bengali -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <!-- Tailwind CSS via Play CDN -->
@@ -17,8 +20,8 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-              bengali: ['"Noto Sans Bengali"', 'sans-serif'],
+              sans: ['Inter', 'Hind Siliguri', '"Noto Sans Bengali"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+              bengali: ['"Hind Siliguri"', '"Noto Sans Bengali"', 'sans-serif'],
               display: ['"Space Grotesk"', 'sans-serif'],
             },
             colors: {
@@ -75,9 +78,11 @@
         padding: 0;
         background: #f8fafc;
         color: #0f172a;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Inter', 'Hind Siliguri', '"Noto Sans Bengali"', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
         -webkit-tap-highlight-color: transparent;
       }
       body {
@@ -160,7 +165,7 @@
     <!-- Glassmorphic Fixed Navbar -->
     <nav class="fixed top-0 left-0 w-full z-50 px-4 py-3 bg-white/40 backdrop-blur-2xl border-b border-white/80 shadow-2xl shadow-black/5">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <a href="#" class="font-display text-xl font-bold tracking-tighter bg-accent text-white px-3 py-1 rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.3)] tap-target">
+        <a href="https://abmit-portfolio.vercel.app/" class="font-display text-xl font-bold tracking-tighter bg-accent text-white px-3 py-1 rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.3)] tap-target" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;">
           ABM IT
         </a>
 
@@ -216,23 +221,24 @@
         <div class="bg-white/65 backdrop-blur-xl border border-white/80 shadow-[0_8px_32px_rgba(15,23,42,0.06)] rounded-3xl p-6 md:p-12 max-w-3xl mx-auto">
           <div class="flex flex-col md:flex-row gap-8 md:gap-12">
             <div class="flex-1">
-              <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tighter mb-6 text-slate-900">About ABM Iftiazur Rahman</h2>
-              <p class="text-base md:text-lg text-slate-600 leading-relaxed mb-6">
+              <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tighter mb-6 text-slate-900 text-balance">About ABM Iftiazur Rahman</h2>
+              <p class="text-base md:text-lg text-slate-600 leading-relaxed mb-6 text-pretty">
                 I&rsquo;m <strong>ABM Iftiazur Rahman</strong>, an undergraduate student in Media, Communication &amp; Journalism (MCJ) at <strong>North South University (NSU)</strong>, Dhaka, and the Founder &amp; Builder at <strong>ABM IT</strong>.
               </p>
-              <p class="text-base md:text-lg text-slate-600 leading-relaxed mb-6">
+              <p class="text-base md:text-lg text-slate-600 leading-relaxed mb-6 text-pretty">
                 I build offline-first web applications, Android tools, and interactive 3D experiences — with zero backend, zero tracking, and everything running entirely on the user&rsquo;s device.
               </p>
               <h3 class="font-display text-xl md:text-2xl font-bold tracking-tight mb-3 text-slate-900">Core Engineering Principles</h3>
               <ul class="space-y-3 text-slate-600 leading-relaxed">
                 <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Zero-Backend Privacy</strong> — No server, no database, no tracking. Data stays on the user&rsquo;s device.</li>
-                <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Bilingual (বাংলা / English)</strong> — Fully localised Bangla and English interfaces.</li>
+                <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Bilingual (<span lang="bn" class="font-bengali">বাংলা</span> / English)</span> — Fully localised Bangla and English interfaces.</li>
                 <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Cross-Platform</strong> — Web PWA + Android APK from a single codebase.</li>
               </ul>
             </div>
             <div class="flex-1 flex justify-center">
-              <div class="w-48 h-48 bg-white/20 border border-white/30 rounded-full flex items-center justify-center backdrop-blur-md">
-                <span class="font-display text-8xl font-bold text-accent/20">ABM</span>
+              <div class="aspect-square w-44 sm:w-56 rounded-full flex flex-col items-center justify-center text-center overflow-hidden p-4 mx-auto bg-white/20 border border-white/30 backdrop-blur-md">
+                <span class="font-display text-2xl sm:text-3xl font-bold text-slate-900 whitespace-nowrap">ABM IT</span>
+                <span class="text-xs sm:text-sm font-medium text-slate-600 mt-1 whitespace-nowrap">Software &amp; Craft</span>
               </div>
             </div>
           </div>
@@ -244,7 +250,7 @@
         <div class="bg-white/65 backdrop-blur-xl border border-white/80 shadow-[0_8px_32px_rgba(15,23,42,0.06)] rounded-3xl p-6 md:p-12 max-w-7xl mx-auto">
           <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
             <div>
-              <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tighter mb-3 text-slate-900">Flagship Software</h2>
+              <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tighter mb-3 text-slate-900 text-balance">Flagship Software</h2>
               <p class="text-slate-600 max-w-md">Production-ready applications built by ABM IT.</p>
             </div>
           </div>
@@ -254,11 +260,11 @@
             <div class="group bg-white/65 backdrop-blur-xl border border-white/80 shadow-[0_8px_32px_rgba(15,23,42,0.06)] rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:bg-white/80">
               <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-accent mb-4">
-                <span>01</span><span>·</span><span>PWA</span><span>·</span><span>Android APK</span><span>·</span><span>Offline-First</span><span>·</span><span class="font-bengali">বাংলা</span> / <span class="font-bengali">EN</span>
+                <span>01</span><span>·</span><span>PWA</span><span>·</span><span>Android APK</span><span>·</span><span>Offline-First</span><span>·</span><span class="font-bengali" lang="bn">বাংলা</span> / <span class="font-bengali" lang="bn">EN</span>
               </div>
-              <h3 class="font-display text-xl md:text-2xl font-bold tracking-tight mb-3 text-slate-900">হিসাব / Hishab</h3>
+              <h3 class="font-display text-xl md:text-2xl font-bold tracking-tight mb-3 text-slate-900"><span lang="bn" class="font-bengali">হিসাব</span> / Hishab</h3>
               <p class="text-sm md:text-base text-slate-600 leading-relaxed mb-6 text-balance">
-                A zero-server personal finance and budget manager built for Bangladesh. Features a smart daily spend-limit dial (&ldquo;আজ বাকি&rdquo;), multi-wallet tracking (Cash, bKash, Nagad, Bank), category rollover budgets, savings goals, debt tracker, Zakat calculator, 4-digit PIN lock, and instant Excel (.xlsx), PDF, CSV &amp; JSON exports.
+                A zero-server personal finance and budget manager built for Bangladesh. Features a smart daily spend-limit dial (&ldquo;<span lang="bn" class="font-bengali">আজ বাকি</span>&rdquo;), multi-wallet tracking (Cash, bKash, Nagad, Bank), category rollover budgets, savings goals, debt tracker, Zakat calculator, 4-digit PIN lock, and instant Excel (.xlsx), PDF, CSV &amp; JSON exports.
               </p>
               <div class="mt-6 pt-4 border-t border-slate-900/5 flex items-center gap-3">
                 <a href="https://mr0632817-sys.github.io/hishab-abmit/" target="_blank" rel="noopener noreferrer" class="flex-1 inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-sky-500 hover:bg-sky-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 shadow-sm transition">Open Web App</a>
@@ -304,7 +310,7 @@
       <!-- Contact Section — Glass Panel -->
       <section class="relative py-24 md:py-32 px-4 scroll-reveal" id="contact">
         <div class="max-w-3xl mx-auto rounded-3xl bg-white/65 backdrop-blur-xl border border-white/80 p-7 sm:p-10 text-center shadow-[0_8px_32px_rgba(15,23,42,0.06)]">
-          <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tighter mb-6 md:mb-8 text-slate-900">Contact ABM IT</h2>
+          <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tighter mb-6 md:mb-8 text-slate-900 text-balance">Contact ABM IT</h2>
           <p class="text-base md:text-lg text-slate-600 leading-relaxed mb-8 max-w-lg mx-auto text-balance">
             Founder &amp; Builder at ABM IT. Have a project idea or want to collaborate?
           </p>
@@ -333,6 +339,18 @@
       </footer>
     </main>
 
+    <!-- Smooth scroll without hash fragments -->
+    <script>
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    </script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
