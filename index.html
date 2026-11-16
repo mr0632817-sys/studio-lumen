@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script>
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ABM IT — ABM Iftiazur Rahman</title>
     <meta name="description" content="ABM Iftiazur Rahman — Founder & Builder at ABM IT. Building offline-first web applications, Android tools, and interactive 3D experiences." />
     <!-- Google Fonts: Preconnect -->
@@ -21,8 +24,8 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'Hind Siliguri', '"Noto Sans Bengali"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-              bengali: ['"Hind Siliguri"', '"Noto Sans Bengali"', 'sans-serif'],
+              sans: ['Inter', 'Hind Siliguri', 'Noto Sans Bengali', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+              bengali: ['"Hind Siliguri"', 'Noto Sans Bengali', 'sans-serif'],
               display: ['"Space Grotesk"', 'sans-serif'],
             },
             colors: {
@@ -79,7 +82,7 @@
         padding: 0;
         background: #f8fafc;
         color: #0f172a;
-        font-family: 'Inter', 'Hind Siliguri', '"Noto Sans Bengali"', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Inter', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -87,10 +90,10 @@
         -webkit-tap-highlight-color: transparent;
       }
       body {
-        font-family: 'Inter', 'Hind Siliguri', '"Noto Sans Bengali"', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Inter', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
       .font-bengali {
-        font-family: '"Noto Sans Bengali"', sans-serif;
+        font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
       }
       /* Dark theme overrides */
       html.dark {
@@ -124,6 +127,28 @@
       }
       html.dark .text-slate-500 {
         color: #94a3b8 !important;
+      }
+      html.dark #bg-canvas { background: #060913; }
+      html.dark .bg-white\/90, html.dark .bg-white\/95 {
+        background-color: rgba(15, 23, 42, 0.9) !important;
+      }
+      html.dark .bg-white\/80 {
+        background-color: rgba(30, 41, 59, 0.9) !important;
+      }
+      html.dark .hover\:bg-white:hover, html.dark .hover\:bg-white\/95:hover {
+        background-color: rgba(30, 41, 59, 0.95) !important;
+      }
+      html.dark .border-slate-200, html.dark .border-slate-200\/80 {
+        border-color: rgba(255, 255, 255, 0.12) !important;
+      }
+      html.dark .text-slate-700, html.dark .text-slate-800 {
+        color: #cbd5e1 !important;
+      }
+      html.dark .text-sky-700 {
+        color: #7dd3fc !important;
+      }
+      html.dark .hamburger span {
+        background: #f8fafc;
       }
       html.dark .bg-slate-900 {
         background-color: #f8fafc !important;
@@ -161,6 +186,9 @@
         background: #0f172a;
         border-radius: 2px;
         transition: all 0.3s ease;
+      }
+      @media (max-width: 767px) {
+        .hamburger { display: flex; }
       }
       .mobile-nav {
         display: none;
@@ -214,25 +242,26 @@
         <a href="https://abmit-portfolio.vercel.app/" class="font-display text-xl font-bold tracking-tighter bg-accent text-white px-3 py-1 rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.3)] tap-target" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;">
           ABM IT
         </a>
-
-        <!-- Hamburger (mobile) -->
-        <button id="hamburger" class="hamburger md:hidden z-60" aria-label="Toggle menu" aria-expanded="false">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+        <div class="flex items-center gap-1">
 
         <!-- Desktop links -->
         <div class="hidden md:flex gap-6 text-sm font-medium text-slate-600">
           <a href="#about" class="hover:text-accent transition-colors tap-target py-2 px-3">About</a>
           <a href="#software" class="hover:text-accent transition-colors tap-target py-2 px-3">Software</a>
           <a href="#contact" class="hover:text-accent transition-colors tap-target py-2 px-3">Contact</a>
-          <button id="theme-toggle" class="hover:text-accent transition-colors tap-target py-2 px-3" aria-label="Toggle dark mode" title="Toggle dark mode">
+        </div>
+          <button id="theme-toggle" class="text-slate-700 hover:text-accent transition-colors tap-target py-2 px-3" aria-label="Toggle dark mode" title="Toggle dark mode">
             <svg id="theme-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           </button>
+
+        <!-- Hamburger (mobile) -->
+        <button id="hamburger" class="hamburger md:hidden z-60 min-w-[44px] min-h-[44px] items-center justify-center" aria-label="Toggle menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         </div>
       </div>
-    </nav>
 
     <!-- Mobile nav dropdown -->
     <div id="mobileNav" class="mobile-nav md:hidden">
@@ -240,6 +269,7 @@
       <a href="#software" class="tap-target">Software</a>
       <a href="#contact" class="tap-target">Contact</a>
     </div>
+    </nav>
 
     <main class="relative z-10 min-h-screen pt-20">
       <!-- Hero Section — Glass Panel -->
@@ -280,7 +310,7 @@
               <h3 class="font-display text-xl md:text-2xl font-bold tracking-tight mb-3 text-slate-900">Core Engineering Principles</h3>
               <ul class="space-y-3 text-slate-700 font-medium leading-relaxed">
                 <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Zero-Backend Privacy</strong> — No server, no database, no tracking. Data stays on the user&rsquo;s device.</li>
-                <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Bilingual (<span lang="bn" class="font-bengali">বাংলা</span> / English)</span> — Fully localised Bangla and English interfaces.</li>
+                <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Bilingual (<span lang="bn" class="font-bengali">বাংলা</span> / English)</strong> — Fully localised Bangla and English interfaces.</li>
                 <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Cross-Platform</strong> — Web PWA + Android APK from a single codebase.</li>
               </ul>
             </div>
@@ -306,12 +336,12 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto px-4 sm:px-6">
             <!-- Card 1: Project Hishab -->
-            <div class="group bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:bg-white/95">
+            <div class="group relative overflow-hidden bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:bg-white/95">
               <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-sky-700 font-semibold bg-sky-500/10 px-3 py-1 rounded-md mb-4">
                 <span>01</span><span>·</span><span>PWA</span><span>·</span><span>Android APK</span><span>·</span><span>Offline-First</span><span>·</span><span class="font-bengali" lang="bn">বাংলা</span> / <span class="font-bengali" lang="bn">EN</span>
               </div>
-              <h3 class="font-display text-xl md:text-2xl font-bold tracking-tight mb-3 text-slate-900"><span lang="bn" class="font-bengali">হিসাব</span> / Hishab</h3>
+              <h3 class="font-display text-xl md:text-2xl font-bold tracking-normal mb-3 text-slate-900"><span lang="bn" class="font-bengali">হিসাব</span> / Hishab</h3>
               <p class="text-sm md:text-base text-slate-700 font-medium leading-relaxed mb-6 text-balance">
                 A zero-server personal finance and budget manager built for Bangladesh. Features a smart daily spend-limit dial (&ldquo;<span lang="bn" class="font-bengali">আজ বাকি</span>&rdquo;), multi-wallet tracking (Cash, bKash, Nagad, Bank), category rollover budgets, savings goals, debt tracker, Zakat calculator, 4-digit PIN lock, and instant Excel (.xlsx), PDF, CSV &amp; JSON exports.
               </p>
@@ -322,7 +352,7 @@
             </div>
 
             <!-- Card 2: Routina -->
-            <div class="group bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:bg-white/95">
+            <div class="group relative overflow-hidden bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:bg-white/95">
               <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-sky-700 font-semibold bg-sky-500/10 px-3 py-1 rounded-md mb-4">
                 <span>02</span><span>·</span><span>PWA</span><span>·</span><span>ICS Calendar Sync</span><span>·</span><span>Canvas PNG/PDF</span><span>·</span><span>Offline</span>
@@ -338,7 +368,7 @@
             </div>
 
             <!-- Card 3: Split Ledger -->
-            <div class="group bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:bg-white/95">
+            <div class="group relative overflow-hidden bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:bg-white/95">
               <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-sky-700 font-semibold bg-sky-500/10 px-3 py-1 rounded-md mb-4">
                 <span>03</span><span>·</span><span>PWA</span><span>·</span><span>Smart Settlement</span><span>·</span><span>PDF &amp; Excel</span><span>·</span><span>Offline-First</span>
