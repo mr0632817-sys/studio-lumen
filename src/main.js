@@ -2,6 +2,7 @@ import * as THREE from 'https://esm.sh/three@0.165.0';
 
 // ============================================================================
 // Advanced Three.js 3D Background — Scroll-Reactive Glass Spheres & Torus Meshes
+// Mobile-optimized: capped pixel ratio, reduced geometry on small screens
 // ============================================================================
 let scene, camera, renderer, clock;
 let meshGroup;
@@ -13,9 +14,15 @@ let windowHalfY = window.innerHeight / 2;
 let mouseX = 0;
 let mouseY = 0;
 let scrollProgress = 0;
+let isMobile = false;
+
+function detectMobile() {
+  return window.innerWidth < 768;
+}
 
 function initThree() {
   const canvas = document.getElementById('bg-canvas');
+  isMobile = detectMobile();
 
   scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0xf8fafc, 0.005);
@@ -23,24 +30,27 @@ function initThree() {
   camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
   camera.position.set(0, 0, 14);
 
+  // Mobile: cap pixel ratio at 1.5 to save GPU/battery; desktop up to 2
+  const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2);
+
   renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(pixelRatio);
   renderer.toneMapping = THREE.ReinhardToneMapping;
   renderer.toneMappingExposure = 1.1;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   // Ambient light — soft base
-  ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 0.3 : 0.4);
   scene.add(ambientLight);
 
   // Point light 1 — accent blue
-  pointLight1 = new THREE.PointLight(0x0ea5e9, 2.0, 100);
+  pointLight1 = new THREE.PointLight(0x0ea5e9, isMobile ? 1.5 : 2.0, 100);
   pointLight1.position.set(5, 5, 5);
   scene.add(pointLight1);
 
   // Point light 2 — soft fill
-  pointLight2 = new THREE.PointLight(0xffffff, 1.0, 100);
+  pointLight2 = new THREE.PointLight(0xffffff, isMobile ? 0.8 : 1.0, 100);
   pointLight2.position.set(-5, -5, 5);
   scene.add(pointLight2);
 
@@ -48,11 +58,11 @@ function initThree() {
   meshGroup = new THREE.Group();
   scene.add(meshGroup);
 
-  // Create glassmorphic reflective spheres
-  const sphereCount = 8;
+  // Create glassmorphic reflective spheres — fewer on mobile
+  const sphereCount = isMobile ? 5 : 8;
   for (let i = 0; i < sphereCount; i++) {
     const radius = 0.4 + Math.random() * 0.8;
-    const geometry = new THREE.SphereGeometry(radius, 64, 64);
+    const geometry = new THREE.SphereGeometry(radius, isMobile ? 24 : 64, isMobile ? 24 : 64);
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       metalness: 0.3,
@@ -89,10 +99,10 @@ function initThree() {
     spheres.push(sphere);
   }
 
-  // Create glass torus knots
-  const torusCount = 3;
+  // Create glass torus knots — fewer on mobile
+  const torusCount = isMobile ? 2 : 3;
   for (let i = 0; i < torusCount; i++) {
-    const geometry = new THREE.TorusKnotGeometry(0.7 + i * 0.4, 0.25 + i * 0.1, 128, 32);
+    const geometry = new THREE.TorusKnotGeometry(0.7 + i * 0.4, 0.25 + i * 0.1, isMobile ? 64 : 128, isMobile ? 16 : 32);
     const material = new THREE.MeshPhysicalMaterial({
       color: 0x0ea5e9,
       metalness: 0.6,
@@ -120,6 +130,8 @@ function initThree() {
         y: 0.2 + Math.random() * 0.3,
       },
       baseY: torus.position.y,
+      baseX: torus.position.x,
+      baseZ: torus.position.z,
       driftMultiplier: 0.4 + Math.random() * 0.6,
     };
     scene.add(torus);
@@ -130,19 +142,39 @@ function initThree() {
 
   window.addEventListener('resize', onWindowResize);
   window.addEventListener('mousemove', onMouseMove);
-  window.addEventListener('scroll', onScroll);
+  window.addEventListener('touchmove', onTouchMove, { passive: true });
+  window.addEventListener('scroll', onScroll, { passive: true });
   onScroll(); // init scroll progress
 }
 
 function onWindowResize() {
+  const wasMobile = isMobile;
+  isMobile = detectMobile();
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+
+  // Mobile: cap pixel ratio at 1.5; desktop up to 2
+  const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2);
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(pixelRatio);
+
+  // Recreate scene if mobile/desktop boundary crossed (optional optimization)
+  if (wasMobile !== isMobile) {
+    // Could reload geometry here if needed; for now just resize
+  }
 }
 
 function onMouseMove(event) {
   mouseX = (event.clientX - windowHalfX) / windowHalfX;
   mouseY = (event.clientY - windowHalfY) / windowHalfY;
+}
+
+function onTouchMove(event) {
+  if (event.touches.length > 0) {
+    const touch = event.touches[0];
+    mouseX = (touch.clientX - windowHalfX) / windowHalfX;
+    mouseY = (touch.clientY - windowHalfY) / windowHalfY;
+  }
 }
 
 function onScroll() {
@@ -169,7 +201,7 @@ function animateThree() {
     sphere.rotation.y += sphere.userData.rotateSpeed.y * 0.4;
     sphere.rotation.z += sphere.userData.rotateSpeed.z * 0.3;
 
-    // Mouse drift
+    // Mouse/touch drift
     sphere.position.x += (mouseX * 3 * sphere.userData.driftMultiplier - sphere.position.x) * 0.02;
     sphere.position.y += (mouseY * 2 * sphere.userData.driftMultiplier - sphere.position.y) * 0.02;
 
@@ -201,7 +233,7 @@ function animateThree() {
       torus.userData.baseZ +
       Math.sin(scrollProgress * Math.PI * 1.5 + i) * 1.0;
 
-    // Mouse drift
+    // Mouse/touch drift
     torus.position.x += (mouseX * 2 * torus.userData.driftMultiplier - torus.position.x) * 0.02;
   });
 
@@ -262,8 +294,37 @@ function initScrollProgress() {
     progressBar.style.width = scrolled + '%';
   }
 
-  window.addEventListener('scroll', updateProgress);
+  window.addEventListener('scroll', updateProgress, { passive: true });
   updateProgress();
+}
+
+// ============================================================================
+// Mobile hamburger menu
+// ============================================================================
+function initMobileMenu() {
+  const hamburger = document.getElementById('hamburger');
+  const mobileNav = document.getElementById('mobileNav');
+
+  if (!hamburger || !mobileNav) return;
+
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileNav.classList.contains('open');
+    if (isOpen) {
+      mobileNav.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+    } else {
+      mobileNav.classList.add('open');
+      hamburger.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  // Close menu when clicking a link
+  mobileNav.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => {
+      mobileNav.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+    });
+  });
 }
 
 // ============================================================================
@@ -273,6 +334,7 @@ function init() {
   initThree();
   initScrollReveals();
   initScrollProgress();
+  initMobileMenu();
 
   function loop() {
     onScroll(); // keep scroll progress synced
