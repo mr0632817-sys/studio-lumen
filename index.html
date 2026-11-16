@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -17,6 +17,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
@@ -86,10 +87,47 @@
         -webkit-tap-highlight-color: transparent;
       }
       body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Inter', 'Hind Siliguri', '"Noto Sans Bengali"', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
       .font-bengali {
         font-family: '"Noto Sans Bengali"', sans-serif;
+      }
+      /* Dark theme overrides */
+      html.dark {
+        color-scheme: dark;
+      }
+      html.dark body {
+        background: #060913 !important;
+        color: #f8fafc !important;
+      }
+      html.dark .glass-panel {
+        background: rgba(15, 23, 42, 0.65) !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+        box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.5) !important;
+      }
+      html.dark .glass-card {
+        background: rgba(15, 23, 42, 0.55) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      html.dark .glass-card:hover {
+        background: rgba(15, 23, 42, 0.7) !important;
+        border-color: rgba(255, 255, 255, 0.25) !important;
+      }
+      html.dark .text-slate-900 {
+        color: #f8fafc !important;
+      }
+      html.dark .text-slate-600 {
+        color: #cbd5e1 !important;
+      }
+      html.dark .text-gray-400 {
+        color: #94a3b8 !important;
+      }
+      html.dark .text-slate-500 {
+        color: #94a3b8 !important;
+      }
+      html.dark .bg-slate-900 {
+        background-color: #f8fafc !important;
+        color: #060913 !important;
       }
       /* Custom animations */
       .scroll-reveal {
@@ -151,6 +189,14 @@
       .mobile-nav a:last-child {
         border-bottom: none;
       }
+      html.dark .mobile-nav {
+        background: rgba(15, 23, 42, 0.95) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.15) !important;
+      }
+      html.dark .mobile-nav a {
+        color: #f8fafc !important;
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      }
     </style>
   </head>
   <body class="antialiased bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900 overflow-x-hidden selection:bg-accent selection:text-white">
@@ -181,6 +227,9 @@
           <a href="#about" class="hover:text-accent transition-colors tap-target py-2 px-3">About</a>
           <a href="#software" class="hover:text-accent transition-colors tap-target py-2 px-3">Software</a>
           <a href="#contact" class="hover:text-accent transition-colors tap-target py-2 px-3">Contact</a>
+          <button id="theme-toggle" class="hover:text-accent transition-colors tap-target py-2 px-3" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <svg id="theme-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          </button>
         </div>
       </div>
     </nav>

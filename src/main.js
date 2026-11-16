@@ -393,6 +393,31 @@ function initMobileMenu() {
 }
 
 // ============================================================================
+// Dark mode toggle
+// ============================================================================
+function initThemeToggle() {
+  const toggle = document.getElementById('theme-toggle');
+  const icon = document.getElementById('theme-toggle-icon');
+  const html = document.documentElement;
+
+  // Set initial icon
+  if (icon) {
+    icon.innerHTML = html.classList.contains('dark')
+      ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>'
+      : '<path d="M12 3v1m0 16v1m9-9h-1M4 22H3m0 0h-1m4.43-4.43l-.707.707m14.143-14.143l-.707.707M17 11a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM17 11v5m-7 0H9m2 0h-3m-1 0H7m15 0h-1m-1 4l-.707-.707m-14.142 14.143l.707-.707m0-14.142l.707.707"></path>'
+  }
+
+  toggle.addEventListener('click', () => {
+    const isNowDark = html.classList.toggle('dark');
+    if (icon) {
+      icon.innerHTML = isNowDark
+        ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>'
+        : '<path d="M12 3v1m0 16v1m9-9h-1M4 22H3m0 0h-1m4.43-4.43l-.707.707m14.143-14.143l-.707.707M17 11a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM17 11v5m-7 0H9m2 0h-3m-1 0H7m15 0h-1m-1 4l-.707-.707m-14.142 14.143l.707-.707m0-14.142l.707.707"></path>'
+    }
+  });
+}
+
+// ============================================================================
 // Copy Email with toast
 // ============================================================================
 function initCopyEmail() {
@@ -443,6 +468,7 @@ function init() {
   initScrollReveals();
   initScrollProgress();
   initMobileMenu();
+  initThemeToggle();
   initCopyEmail();
 
   if (!prefersReducedMotion) {
