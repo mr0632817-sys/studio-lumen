@@ -1,325 +1,220 @@
 import * as THREE from 'https://esm.sh/three@0.165.0';
 
 // ============================================================================
-// Advanced Three.js 3D Background — Apple-Grade Liquid Glass Centerpiece
-// Scroll-driven choreography + responsive camera + 60fps performance
+// ABM IT — 3D background: one polished crystal that glides with the scroll.
+// Slow time-based idle motion, damped scroll, light/dark aware, very light on GPU.
 // ============================================================================
 let scene, camera, renderer, clock;
-let meshGroup;
-let spheres = [];
-let torusKnots = [];
-let pointLight1, pointLight2, ambientLight;
-let windowHalfX = window.innerWidth / 2;
-let windowHalfY = window.innerHeight / 2;
-let mouseX = 0;
-let mouseY = 0;
-let scrollProgress = 0;
+let hero, edges, ringA, ringB, stars, envTex, keyLight;
 let isMobile = false;
 let isPaused = false;
 let prefersReducedMotion = false;
 let animationId = null;
+let targetProgress = 0;
+let smoothProgress = 0;
+let pointerX = 0, pointerY = 0, smoothX = 0, smoothY = 0;
 
-const prefersReducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+const isDark = () => document.documentElement.classList.contains('dark');
+const mix = (a, b, t) => a + (b - a) * t;
 
-function detectMobile() {
-  return window.innerWidth < 768;
+// Position / scale stops along the page: [x, y, scale]
+const DESKTOP_PATH = [[3.4, 0.1, 1], [-3.4, 0, 0.95], [3.4, -0.1, 1], [0, 0.3, 1.15]];
+const MOBILE_PATH = [[0, 1.9, 0.62], [0, 1.5, 0.55], [0, 1.7, 0.6], [0, 1.2, 0.7]];
+
+function pathAt(p) {
+  const stops = isMobile ? MOBILE_PATH : DESKTOP_PATH;
+  const n = stops.length - 1;
+  const f = Math.min(Math.max(p, 0), 0.9999) * n;
+  const i = Math.floor(f);
+  const t = f - i;
+  const s = t * t * (3 - 2 * t); // smoothstep
+  const a = stops[i], b = stops[i + 1];
+  return { x: mix(a[0], b[0], s), y: mix(a[1], b[1], s), s: mix(a[2], b[2], s) };
+}
+
+// Soft studio-light reflections painted on a canvas, no external image needed
+function makeEnvironment(dark) {
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 512;
+  const g = c.getContext('2d');
+  const grad = g.createLinearGradient(0, 0, 0, 512);
+  if (dark) {
+    grad.addColorStop(0, '#22345c'); grad.addColorStop(0.5, '#0c1430'); grad.addColorStop(1, '#05070f');
+  } else {
+    grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.5, '#cbd5e1'); grad.addColorStop(1, '#475569');
+  }
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 1024, 512);
+  const box = (x, y, w, h, a) => { g.fillStyle = `rgba(255,255,255,${a})`; g.fillRect(x, y, w, h); };
+  box(110, 70, 230, 110, dark ? 0.55 : 0.95);
+  box(610, 50, 270, 90, dark ? 0.4 : 0.85);
+  box(400, 310, 190, 60, dark ? 0.25 : 0.5);
+  const tex = new THREE.CanvasTexture(c);
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const rt = pmrem.fromEquirectangular(tex);
+  tex.dispose();
+  pmrem.dispose();
+  return rt.texture;
+}
+
+function applyTheme() {
+  if (!hero) return;
+  const dark = isDark();
+  if (envTex) envTex.dispose();
+  envTex = makeEnvironment(dark);
+  hero.material.envMap = envTex;
+  hero.material.color.set(dark ? 0xaab8ff : 0x243247);
+  hero.material.needsUpdate = true;
+  edges.material.color.set(dark ? 0x7dd3fc : 0x0ea5e9);
+  ringA.material.color.set(dark ? 0x7dd3fc : 0x0ea5e9);
+  ringB.material.color.set(dark ? 0xc4b5fd : 0x64748b);
+  stars.material.color.set(dark ? 0xbfd4ff : 0x64748b);
+  keyLight.intensity = dark ? 1.4 : 1.0;
+  if (prefersReducedMotion) renderer.render(scene, camera);
 }
 
 function initThree() {
   const canvas = document.getElementById('bg-canvas');
-  isMobile = detectMobile();
-  prefersReducedMotion = prefersReducedMotionQuery.matches;
-  prefersReducedMotionQuery.addEventListener('change', (e) => {
-    prefersReducedMotion = e.matches;
-  });
+  isMobile = window.innerWidth < 768;
+  prefersReducedMotion = reducedQuery.matches;
+  reducedQuery.addEventListener('change', (e) => { prefersReducedMotion = e.matches; });
+
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+  } catch (err) {
+    // No WebGL: keep the page working with a plain background
+    renderer = { render() {}, setSize() {}, setPixelRatio() {} };
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera();
+    return;
+  }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
 
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0xf8fafc, isMobile ? 0.004 : 0.006);
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0, isMobile ? 11 : 9);
 
-  // Camera: Desktop Z=14, Mobile Z = 14 * 1.65 ≈ 23
-  const camZ = isMobile ? 23 : 14;
-  camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
-  camera.position.set(0, 0, camZ);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  keyLight.position.set(4, 5, 6);
+  scene.add(keyLight);
 
-  // Lock pixelRatio at min(devicePixelRatio, 2)
-  const pixelRatio = Math.min(window.devicePixelRatio, 2);
+  // Hero crystal: faceted, polished, with crisp edge lines
+  const geo = new THREE.IcosahedronGeometry(1.5, 1);
+  hero = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({
+    color: 0x243247, metalness: 0.85, roughness: 0.16, clearcoat: 1, clearcoatRoughness: 0.08,
+    iridescence: 0.5, iridescenceIOR: 1.4, envMapIntensity: 1.25, flatShading: true,
+  }));
+  edges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(geo),
+    new THREE.LineBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.35 })
+  );
+  hero.add(edges);
+  scene.add(hero);
 
-  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(pixelRatio);
-  renderer.toneMapping = THREE.ReinhardToneMapping;
-  renderer.toneMappingExposure = 1.15;
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  // Two hairline orbit rings
+  const ringMat = (o) => new THREE.MeshBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: o });
+  ringA = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.012, 12, 180), ringMat(0.5));
+  ringB = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.008, 12, 180), ringMat(0.3));
+  ringA.rotation.x = 1.15;
+  ringB.rotation.set(0.5, 0.9, 0);
+  scene.add(ringA, ringB);
 
-  // Ambient light — soft base
-  ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 0.35 : 0.45);
-  scene.add(ambientLight);
-
-  // Point light 1 — crisp blue accent
-  pointLight1 = new THREE.PointLight(0x0ea5e9, isMobile ? 2.0 : 3.0, 100);
-  pointLight1.position.set(6, 6, 8);
-  scene.add(pointLight1);
-
-  // Point light 2 — warm fill for dimensional glass refraction
-  pointLight2 = new THREE.PointLight(0xffffff, isMobile ? 1.0 : 1.5, 100);
-  pointLight2.position.set(-6, -4, 6);
-  scene.add(pointLight2);
-
-  // Main mesh group — scaled down on mobile so entire sculpture fits narrow screens
-  meshGroup = new THREE.Group();
-  meshGroup.scale.setScalar(isMobile ? 0.72 : 1.0);
-  scene.add(meshGroup);
-
-  // Create glass spheres — fewer on mobile, constrained to center
-  const sphereCount = isMobile ? 6 : 10;
-  const sphereSpread = isMobile ? 1.8 : 16; // keep within -1.8 to 1.8 on mobile
-  for (let i = 0; i < sphereCount; i++) {
-    const radius = 0.35 + Math.random() * 0.6;
-    const geometry = new THREE.SphereGeometry(radius, isMobile ? 32 : 64, isMobile ? 32 : 64);
-    const material = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      metalness: 0.25,
-      roughness: 0.06,
-      transmission: 0.72,
-      transparent: true,
-      opacity: 0.88,
-      clearcoat: 1.2,
-      clearcoatRoughness: 0.03,
-      side: THREE.DoubleSide,
-    });
-    const sphere = new THREE.Mesh(geometry, material);
-    sphere.position.set(
-      (Math.random() - 0.5) * sphereSpread,
-      (Math.random() - 0.5) * 10,
-      (Math.random() - 0.5) * sphereSpread
-    );
-    sphere.castShadow = true;
-    sphere.receiveShadow = true;
-    sphere.userData = {
-      floatSpeed: 0.5 + Math.random() * 1.0,
-      floatOffset: Math.random() * Math.PI * 2,
-      rotateSpeed: {
-        x: 0.12 + Math.random() * 0.18,
-        y: 0.12 + Math.random() * 0.18,
-        z: 0.08 + Math.random() * 0.12,
-      },
-      baseY: sphere.position.y,
-      baseX: sphere.position.x,
-      baseZ: sphere.position.z,
-      driftMultiplier: 0.3 + Math.random() * 0.4,
-    };
-    scene.add(sphere);
-    spheres.push(sphere);
+  // Sparse depth particles
+  const count = isMobile ? 220 : 480;
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const r = 6 + Math.random() * 10;
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    pos[i * 3] = r * Math.sin(ph) * Math.cos(th);
+    pos[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th);
+    pos[i * 3 + 2] = r * Math.cos(ph) - 4;
   }
-
-  // Create glass torus knots — fewer on mobile
-  const torusCount = isMobile ? 2 : 3;
-  const torusSpread = isMobile ? 1.6 : 14;
-  for (let i = 0; i < torusCount; i++) {
-    const geometry = new THREE.TorusKnotGeometry(0.6 + i * 0.35, 0.22 + i * 0.12, isMobile ? 64 : 128, isMobile ? 16 : 32);
-    const material = new THREE.MeshPhysicalMaterial({
-      color: 0x0ea5e9,
-      metalness: 0.7,
-      roughness: 0.08,
-      transmission: 0.85,
-      transparent: true,
-      opacity: 0.82,
-      clearcoat: 1.4,
-      clearcoatRoughness: 0.04,
-      side: THREE.DoubleSide,
-    });
-    const torus = new THREE.Mesh(geometry, material);
-    torus.position.set(
-      (Math.random() - 0.5) * torusSpread,
-      (Math.random() - 0.5) * 8,
-      (Math.random() - 0.5) * torusSpread
-    );
-    torus.castShadow = true;
-    torus.receiveShadow = true;
-    torus.userData = {
-      floatSpeed: 0.4 + Math.random() * 0.7,
-      floatOffset: Math.random() * Math.PI * 2,
-      rotateSpeed: {
-        x: 0.18 + Math.random() * 0.22,
-        y: 0.18 + Math.random() * 0.22,
-      },
-      baseY: torus.position.y,
-      baseX: torus.position.x,
-      baseZ: torus.position.z,
-      driftMultiplier: 0.4 + Math.random() * 0.5,
-    };
-    scene.add(torus);
-    torusKnots.push(torus);
-  }
+  const sg = new THREE.BufferGeometry();
+  sg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  stars = new THREE.Points(sg, new THREE.PointsMaterial({ size: 0.035, transparent: true, opacity: 0.55, depthWrite: false }));
+  scene.add(stars);
 
   clock = new THREE.Clock();
+  applyTheme();
+  new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-  window.addEventListener('resize', onWindowResize);
-  window.addEventListener('mousemove', onMouseMove);
-  window.addEventListener('touchmove', onTouchMove, { passive: true });
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(onResize, 120);
+  });
+  window.addEventListener('mousemove', (e) => {
+    pointerX = (e.clientX / window.innerWidth) * 2 - 1;
+    pointerY = (e.clientY / window.innerHeight) * 2 - 1;
+  }, { passive: true });
   window.addEventListener('scroll', onScroll, { passive: true });
-  document.addEventListener('visibilitychange', onVisibilityChange);
-  onScroll(); // init scroll progress
+  document.addEventListener('visibilitychange', () => {
+    isPaused = document.hidden;
+    if (!isPaused && animationId === null && !prefersReducedMotion) { clock.getDelta(); animate(); }
+  });
+  onScroll();
+  smoothProgress = targetProgress;
 }
 
-function onWindowResize() {
-  const wasMobile = isMobile;
-  isMobile = detectMobile();
+function onResize() {
+  isMobile = window.innerWidth < 768;
   camera.aspect = window.innerWidth / window.innerHeight;
+  camera.position.z = isMobile ? 11 : 9;
   camera.updateProjectionMatrix();
-
-  // Adjust camera Z for mobile framing
-  const camZ = isMobile ? 23 : 14;
-  camera.position.z = camZ;
-
-  // Mobile: cap pixel ratio at 1.5; desktop up to 2
-  const pixelRatio = Math.min(window.devicePixelRatio, 2);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(pixelRatio);
-
-  // Update group scale when crossing mobile/desktop boundary
-  if (wasMobile !== isMobile) {
-    meshGroup.scale.setScalar(isMobile ? 0.72 : 1.0);
-  }
-}
-
-function onMouseMove(event) {
-  mouseX = (event.clientX - windowHalfX) / windowHalfX;
-  mouseY = (event.clientY - windowHalfY) / windowHalfY;
-}
-
-function onTouchMove(event) {
-  if (event.touches.length > 0) {
-    const touch = event.touches[0];
-    mouseX = (touch.clientX - windowHalfX) / windowHalfX;
-    mouseY = (touch.clientY - windowHalfY) / windowHalfY;
-  }
+  if (prefersReducedMotion) onScroll();
 }
 
 function onScroll() {
-  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-  const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-  scrollProgress = height > 0 ? winScroll / height : 0;
+  const max = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  targetProgress = max > 0 ? (window.scrollY || document.documentElement.scrollTop) / max : 0;
+  if (prefersReducedMotion && hero) { smoothProgress = targetProgress; renderFrame(0, 0); }
 }
 
-function onVisibilityChange() {
-  isPaused = document.hidden;
-  if (!isPaused && animationId === null) {
-    animate();
-  }
-}
+function renderFrame(delta, elapsed) {
+  // Frame-rate independent damping: same feel on 60Hz and 120Hz screens
+  const damp = 1 - Math.exp(-delta * 4);
+  smoothProgress += (targetProgress - smoothProgress) * (delta ? damp : 1);
+  smoothX += (pointerX - smoothX) * (delta ? 1 - Math.exp(-delta * 3) : 1);
+  smoothY += (pointerY - smoothY) * (delta ? 1 - Math.exp(-delta * 3) : 1);
 
-function getScrollCameraTarget() {
-  // Scroll-driven camera Z: zoomed-in at Hero (0), shifts at About (~0.25),
-  // pulled back at Software (~0.5), gliding back at Contact (~0.75+)
-  const isMob = isMobile;
-  const baseZ = isMob ? 23 : 14;
+  const p = pathAt(smoothProgress);
+  const bob = Math.sin(elapsed * 0.6) * 0.12;
+  hero.position.set(p.x, p.y + bob, 0);
+  hero.scale.setScalar(p.s);
+  hero.rotation.y = smoothProgress * Math.PI * 1.2 + elapsed * 0.05 + smoothX * 0.2;
+  hero.rotation.x = 0.25 + smoothProgress * 0.6 + smoothY * 0.12;
 
-  let targetZ = baseZ;
-  let targetY = 0;
-  let targetX = 0;
+  ringA.position.copy(hero.position); ringA.scale.setScalar(p.s);
+  ringB.position.copy(hero.position); ringB.scale.setScalar(p.s);
+  ringA.rotation.z = elapsed * 0.08 + smoothProgress * 1.5;
+  ringB.rotation.z = -elapsed * 0.05 - smoothProgress;
 
-  if (scrollProgress < 0.15) {
-    // Hero: closer camera
-    targetZ = isMob ? 20 : 12;
-  } else if (scrollProgress < 0.40) {
-    // About: slight shift
-    targetZ = isMob ? 22 : 13;
-    targetY = (scrollProgress - 0.15) / 0.25 * 0.5;
-  } else if (scrollProgress < 0.65) {
-    // Software: pulled back for text clarity
-    targetZ = isMob ? 24 : 15;
-    targetY = 0.5 - ((scrollProgress - 0.40) / 0.25 * 0.5);
-  } else {
-    // Contact: gliding back
-    targetZ = isMob ? 23 : 14;
-  }
+  stars.rotation.y = elapsed * 0.01 + smoothProgress * 0.4;
+  stars.position.y = smoothProgress * 1.5;
 
-  return { targetZ, targetY, targetX };
+  camera.position.x = smoothX * 0.25;
+  camera.position.y = -smoothY * 0.15;
+  camera.lookAt(0, 0, 0);
+  renderer.render(scene, camera);
 }
 
 function animate() {
-  if (isPaused) {
-    animationId = null;
-    return;
-  }
-
-  const elapsed = clock.getElapsedTime();
-  const { targetZ, targetY, targetX } = getScrollCameraTarget();
-
-  // Smooth camera interpolation
-  camera.position.z += (targetZ - camera.position.z) * 0.05;
-  camera.position.y += (targetY - camera.position.y) * 0.05;
-  camera.position.x += (targetX - camera.position.x) * 0.05;
-
-  // Animate spheres — float, rotate, react to scroll
-  spheres.forEach((sphere, i) => {
-    // Vertical float
-    sphere.position.y =
-      sphere.userData.baseY +
-      Math.sin(elapsed * sphere.userData.floatSpeed + sphere.userData.floatOffset) * 0.55;
-
-    // Scroll-driven vertical shift
-    sphere.position.y += Math.sin(scrollProgress * Math.PI * 3 + i) * 0.35;
-
-    // Rotation
-    sphere.rotation.x += sphere.userData.rotateSpeed.x * 0.4;
-    sphere.rotation.y += sphere.userData.rotateSpeed.y * 0.4;
-    sphere.rotation.z += sphere.userData.rotateSpeed.z * 0.3;
-
-    // Mouse/touch drift
-    sphere.position.x += (mouseX * 2.5 * sphere.userData.driftMultiplier - sphere.position.x) * 0.02;
-    sphere.position.y += (mouseY * 1.8 * sphere.userData.driftMultiplier - sphere.position.y) * 0.02;
-
-    // Scroll-driven horizontal drift (constrained)
-    sphere.position.x += Math.cos(scrollProgress * Math.PI * 2 + i) * 0.25;
-  });
-
-  // Animate torus knots — react to scroll
-  torusKnots.forEach((torus, i) => {
-    torus.rotation.x += torus.userData.rotateSpeed.x * 0.5;
-    torus.rotation.y += torus.userData.rotateSpeed.y * 0.5;
-
-    torus.position.y =
-      torus.userData.baseY +
-      Math.sin(elapsed * torus.userData.floatSpeed + torus.userData.floatOffset) * 0.5;
-
-    torus.position.y += Math.sin(scrollProgress * Math.PI * 2.5 + i * 2) * 0.8;
-
-    torus.position.x =
-      torus.userData.baseX +
-      Math.cos(scrollProgress * Math.PI * 2 + i) * 1.2;
-
-    torus.position.z =
-      torus.userData.baseZ +
-      Math.sin(scrollProgress * Math.PI * 1.2 + i) * 0.8;
-
-    torus.position.x += (mouseX * 1.8 * torus.userData.driftMultiplier - torus.position.x) * 0.02;
-  });
-
-  // Group-level slow rotation
-  meshGroup.rotation.y = elapsed * 0.04 + mouseX * 0.08;
-  meshGroup.rotation.x = Math.sin(elapsed * 0.12) * 0.08;
-
-  // Camera subtle drift
-  camera.position.x += (mouseX * 0.8 - camera.position.x) * 0.03;
-  camera.position.y += (-mouseY * 0.8 - camera.position.y) * 0.03;
-  camera.lookAt(0, 0, 0);
-
-  // Scroll-driven light movement
-  pointLight1.position.x = Math.sin(scrollProgress * Math.PI * 1.5) * 7;
-  pointLight1.position.y = Math.cos(scrollProgress * Math.PI) * 7 + 4;
-  pointLight1.color.setHSL(0.55 + scrollProgress * 0.08, 0.85, 0.65);
-
-  pointLight2.position.x = Math.cos(scrollProgress * Math.PI * 1.2) * 7;
-  pointLight2.position.y = Math.sin(scrollProgress * Math.PI * 1.2) * 6 - 1;
-
-  renderer.render(scene, camera);
+  if (isPaused || !hero) { animationId = null; return; }
+  const delta = Math.min(clock.getDelta(), 0.05);
+  renderFrame(delta, clock.elapsedTime);
   animationId = requestAnimationFrame(animate);
 }
 
-// ============================================================================
-// Scroll-triggered reveals via IntersectionObserver
 // ============================================================================
 function initScrollReveals() {
   const observerOptions = {

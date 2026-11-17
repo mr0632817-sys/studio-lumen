@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ABM IT — ABM Iftiazur Rahman</title>
     <meta name="description" content="ABM Iftiazur Rahman — Founder & Builder at ABM IT. Building offline-first web applications, Android tools, and interactive 3D experiences." />
+    <link rel="preconnect" href="https://esm.sh" crossorigin />
+    <link rel="modulepreload" href="https://esm.sh/three@0.165.0" crossorigin />
     <!-- Google Fonts: Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -127,6 +129,13 @@
       }
       html.dark .text-slate-500 {
         color: #94a3b8 !important;
+      }
+      /* Phones: the cards are already ~90% opaque, so skip the costly blur over the live 3D canvas */
+      @media (max-width: 767px) {
+        section .backdrop-blur-2xl, section .backdrop-blur-md {
+          -webkit-backdrop-filter: none !important;
+          backdrop-filter: none !important;
+        }
       }
       html.dark #bg-canvas { background: #060913; }
       html.dark .bg-white\/90, html.dark .bg-white\/95 {
