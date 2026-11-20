@@ -1,8 +1,6 @@
-"use client";
-
 import React from "react";
 import { Moon, Sun, Terminal } from "lucide-react";
-import { PROFILE_DATA } from "@/data/portfolioData";
+import { PROFILE_DATA } from "../data/portfolioData";
 
 interface NavbarProps {
   isDark: boolean;
@@ -17,7 +15,7 @@ export default function Navbar({ isDark, onToggleTheme }: NavbarProps) {
           href="#"
           className="flex items-center gap-2.5 text-base font-bold tracking-tight text-[var(--text-primary)]"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-secondary)] text-[var(--accent-primary)] shadow-xs">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-secondary)] text-[var(--accent-primary)] shadow-sm">
             <Terminal className="h-4 w-4" />
           </span>
           <span>{PROFILE_DATA.brand}</span>
@@ -28,7 +26,7 @@ export default function Navbar({ isDark, onToggleTheme }: NavbarProps) {
             href="#projects"
             className="transition-colors hover:text-[var(--text-primary)]"
           >
-            Projects
+            Software
           </a>
           <a
             href="#creative"
@@ -51,9 +49,10 @@ export default function Navbar({ isDark, onToggleTheme }: NavbarProps) {
         </nav>
 
         <button
+          type="button"
           onClick={onToggleTheme}
           aria-label="Toggle color theme"
-          className="flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-secondary)] px-3.5 py-1.5 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-all duration-200 hover:scale-105 active:scale-95"
+          className="flex cursor-pointer items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-secondary)] px-3.5 py-1.5 text-xs font-semibold text-[var(--text-primary)] shadow-sm transition-all duration-200 hover:scale-105 active:scale-95"
         >
           {isDark ? (
             <>

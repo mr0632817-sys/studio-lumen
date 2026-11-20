@@ -1,5 +1,3 @@
-"use client";
-
 import React, { Suspense, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
@@ -13,6 +11,31 @@ import * as THREE from "three";
 
 interface AstrolabeProps {
   isDark: boolean;
+}
+
+class AstrolabeErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex h-full w-full items-center justify-center rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-8 text-center text-sm text-[var(--text-secondary)]">
+          Interactive 3D Orbital Core
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 function AstrolabeAssembly({ isDark }: AstrolabeProps) {
@@ -163,57 +186,60 @@ function AstrolabeAssembly({ isDark }: AstrolabeProps) {
 
 export default function CelestialAstrolabe({ isDark }: AstrolabeProps) {
   return (
-    <div className="relative h-[400px] w-full sm:h-[500px] lg:h-[580px]">
+    <div className="relative h-[420px] w-full sm:h-[500px] lg:h-[560px]">
       <div
         className="pointer-events-none absolute inset-12 rounded-full blur-3xl transition-all duration-500"
         style={{ backgroundColor: "var(--accent-glow)" }}
       />
 
-      <Canvas
-        dpr={[1, 2]}
-        camera={{ position: [0, 0, 5.2], fov: 42 }}
-        gl={{ antialias: true, alpha: true }}
-      >
-        <ambientLight intensity={isDark ? 0.45 : 0.95} />
-        <directionalLight
-          position={[5, 5, 5]}
-          intensity={isDark ? 1.8 : 2.2}
-          color={isDark ? "#e0f2fe" : "#ffffff"}
-        />
-        <pointLight
-          position={[-4, -3, -2]}
-          intensity={isDark ? 2.5 : 1.1}
-          color={isDark ? "#6366f1" : "#818cf8"}
-        />
+      <AstrolabeErrorBoundary>
+        <Canvas
+          style={{ width: "100%", height: "100%" }}
+          dpr={[1, 2]}
+          camera={{ position: [0, 0, 5.2], fov: 42 }}
+          gl={{ antialias: true, alpha: true }}
+        >
+          <ambientLight intensity={isDark ? 0.45 : 0.95} />
+          <directionalLight
+            position={[5, 5, 5]}
+            intensity={isDark ? 1.8 : 2.2}
+            color={isDark ? "#e0f2fe" : "#ffffff"}
+          />
+          <pointLight
+            position={[-4, -3, -2]}
+            intensity={isDark ? 2.5 : 1.1}
+            color={isDark ? "#6366f1" : "#818cf8"}
+          />
 
-        <Environment resolution={256}>
-          <Lightformer
-            form="ring"
-            intensity={2.2}
-            position={[0, 5, -5]}
-            scale={10}
-            color={isDark ? "#38bdf8" : "#ffffff"}
-          />
-          <Lightformer
-            form="rect"
-            intensity={1.6}
-            position={[-5, 2, 5]}
-            scale={[10, 2, 1]}
-            color={isDark ? "#818cf8" : "#e2e8f0"}
-          />
-          <Lightformer
-            form="rect"
-            intensity={1.6}
-            position={[5, -2, 5]}
-            scale={[10, 2, 1]}
-            color={isDark ? "#c084fc" : "#cbd5e1"}
-          />
-        </Environment>
+          <Environment resolution={256}>
+            <Lightformer
+              form="ring"
+              intensity={2.2}
+              position={[0, 5, -5]}
+              scale={10}
+              color={isDark ? "#38bdf8" : "#ffffff"}
+            />
+            <Lightformer
+              form="rect"
+              intensity={1.6}
+              position={[-5, 2, 5]}
+              scale={[10, 2, 1]}
+              color={isDark ? "#818cf8" : "#e2e8f0"}
+            />
+            <Lightformer
+              form="rect"
+              intensity={1.6}
+              position={[5, -2, 5]}
+              scale={[10, 2, 1]}
+              color={isDark ? "#c084fc" : "#cbd5e1"}
+            />
+          </Environment>
 
-        <Suspense fallback={null}>
-          <AstrolabeAssembly isDark={isDark} />
-        </Suspense>
-      </Canvas>
+          <Suspense fallback={null}>
+            <AstrolabeAssembly isDark={isDark} />
+          </Suspense>
+        </Canvas>
+      </AstrolabeErrorBoundary>
     </div>
   );
 }

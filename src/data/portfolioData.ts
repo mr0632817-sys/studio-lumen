@@ -17,17 +17,14 @@ export interface CreativeWorkItem {
 }
 
 export const PROFILE_DATA = {
-  brand: "ABM",
+  brand: "ABM IT",
   fullName: "ABM Iftiazur Rahman",
   role: "Full-Stack Developer & Media Communicator",
   tagline: "Engineering precision web systems and purposeful digital narratives.",
   bio: "Undergraduate student in Media, Communication, and Journalism at North South University, building clean full-stack applications alongside analytical writing and creative storytelling.",
   location: "Dhaka, Bangladesh",
   email: "contact@abmit-portfolio.vercel.app",
-  socials: {
-    github: "https://github.com",
-    linkedin: "https://linkedin.com",
-  },
+  githubUrl: "https://github.com/mr0632817-sys",
 };
 
 export const PROJECTS: ProjectItem[] = [
@@ -43,8 +40,9 @@ export const PROJECTS: ProjectItem[] = [
       "Fast transaction logging optimized for mobile and desktop workflows",
       "Clean dual-theme interface designed for distraction-free financial review",
     ],
-    tech: ["Next.js", "TypeScript", "Tailwind CSS", "Local Persistence"],
+    tech: ["React", "TypeScript", "Tailwind CSS", "Local Persistence"],
     liveUrl: "https://abmit-portfolio.vercel.app",
+    repoUrl: "https://github.com/mr0632817-sys",
   },
   {
     id: "routina",
@@ -60,6 +58,7 @@ export const PROJECTS: ProjectItem[] = [
     ],
     tech: ["React", "TypeScript", "Tailwind CSS", "State Management"],
     liveUrl: "https://abmit-portfolio.vercel.app",
+    repoUrl: "https://github.com/mr0632817-sys",
   },
   {
     id: "split-ledger",
@@ -75,6 +74,7 @@ export const PROJECTS: ProjectItem[] = [
     ],
     tech: ["TypeScript", "React", "Tailwind CSS", "Algorithmic Settlement"],
     liveUrl: "https://abmit-portfolio.vercel.app",
+    repoUrl: "https://github.com/mr0632817-sys",
   },
 ];
 
