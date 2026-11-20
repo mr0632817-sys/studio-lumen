@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply antialiased;
+  }
+}
+
+@layer components {
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.75s ease-out, transform 0.75s ease-out;
+  }
+  .scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .glass-card {
+    @apply relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 transition-all duration-500;
+  }
+  .glass-card:hover {
+    @apply border-accent/50;
+  }
+}

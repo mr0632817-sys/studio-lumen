@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     './index.html',
     './src/**/*.{js,ts,jsx,tsx}',
@@ -7,20 +8,17 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        display: ['"Times New Roman"', 'Times', 'serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        sans: ['Inter', 'Hind Siliguri', 'Noto Sans Bengali', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        bengali: ['"Hind Siliguri"', 'Noto Sans Bengali', 'sans-serif'],
+        display: ['"Space Grotesk"', 'sans-serif'],
       },
       colors: {
-        bg: '#0a0a0a',
-        surface: '#121212',
-        accent: '#a0a5b1',
-        accentSoft: 'rgba(160, 165, 177, 0.15)',
+        accent: '#0ea5e9',
       },
       animation: {
         'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
         'float': 'float 6s ease-in-out infinite',
-        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
       },
       keyframes: {
         fadeInUp: {
@@ -29,8 +27,15 @@ export default {
         },
         float: {
           '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
-          '50%': { transform: 'translateY(-20px) rotate(2deg)' },
+          '50%': { transform: 'translateY(-16px) rotate(2deg)' },
         },
+        pulseGlow: {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(14, 165, 233, 0.15)' },
+          '50%': { boxShadow: '0 0 40px rgba(14, 165, 233, 0.35)' },
+        },
+      },
+      backdropBlur: {
+        '2xl': '24px',
       },
     },
   },

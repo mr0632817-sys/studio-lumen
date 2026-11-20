@@ -1,12 +1,443 @@
-<!doctype html>
-<html lang="en" class="dark">
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ABM Iftiazur Rahman — Portfolio</title>
+    <title>ABM IT — ABM Iftiazur Rahman</title>
+    <meta name="description" content="ABM Iftiazur Rahman — Founder & Builder at ABM IT. Building offline-first web applications, Android tools, and interactive 3D experiences." />
+    <!-- Google Fonts: Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Google Fonts: Inter + Hind Siliguri + Noto Sans Bengali + Space Grotesk -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Tailwind CSS via Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'Hind Siliguri', 'Noto Sans Bengali', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+              bengali: ['"Hind Siliguri"', 'Noto Sans Bengali', 'sans-serif'],
+              display: ['"Space Grotesk"', 'sans-serif'],
+            },
+            colors: {
+              accent: '#0ea5e9',
+            },
+            animation: {
+              'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+              'float': 'float 6s ease-in-out infinite',
+              'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
+            },
+            keyframes: {
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(30px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                '50%': { transform: 'translateY(-16px) rotate(2deg)' },
+              },
+              pulseGlow: {
+                '0%, 100%': { boxShadow: '0 0 20px rgba(14, 165, 233, 0.15)' },
+                '50%': { boxShadow: '0 0 40px rgba(14, 165, 233, 0.35)' },
+              },
+            },
+            backdropBlur: {
+              '2xl': '24px',
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      /* Three.js canvas covers entire viewport, fixed behind all content */
+      #bg-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 0;
+        pointer-events: none;
+        display: block;
+        background: #f8fafc;
+        transition: background-color 0.35s ease;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #f8fafc;
+        color: #0f172a;
+        font-family: 'Inter', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        font-family: 'Inter', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      .font-bengali {
+        font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+      }
+      /* Dark theme overrides */
+      html.dark {
+        color-scheme: dark;
+      }
+      html.dark body {
+        background: #060913 !important;
+        color: #f8fafc !important;
+      }
+      html.dark .glass-panel {
+        background: rgba(15, 23, 42, 0.68) !important;
+        border-color: rgba(255, 255, 255, 0.14) !important;
+        box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.55) !important;
+      }
+      html.dark .glass-card {
+        background: rgba(15, 23, 42, 0.58) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      html.dark .glass-card:hover {
+        background: rgba(15, 23, 42, 0.72) !important;
+        border-color: rgba(255, 255, 255, 0.24) !important;
+      }
+      html.dark .text-slate-900 {
+        color: #f8fafc !important;
+      }
+      html.dark .text-slate-600 {
+        color: #cbd5e1 !important;
+      }
+      html.dark .text-gray-400 {
+        color: #94a3b8 !important;
+      }
+      html.dark .text-slate-500 {
+        color: #94a3b8 !important;
+      }
+      /* Phones: cards are ~90% opaque, skip costly backdrop-blur over live 3D canvas */
+      @media (max-width: 767px) {
+        section .backdrop-blur-2xl, section .backdrop-blur-md {
+          -webkit-backdrop-filter: none !important;
+          backdrop-filter: none !important;
+        }
+      }
+      html.dark #bg-canvas { background: #060913; }
+      html.dark .bg-white\/90, html.dark .bg-white\/95 {
+        background-color: rgba(15, 23, 42, 0.88) !important;
+      }
+      html.dark .bg-white\/80 {
+        background-color: rgba(30, 41, 59, 0.88) !important;
+      }
+      html.dark .hover\:bg-white:hover, html.dark .hover\:bg-white\/95:hover {
+        background-color: rgba(30, 41, 59, 0.95) !important;
+      }
+      html.dark .border-slate-200, html.dark .border-slate-200\/80 {
+        border-color: rgba(255, 255, 255, 0.12) !important;
+      }
+      html.dark .border-slate-900\/5 {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      html.dark .text-slate-700, html.dark .text-slate-800 {
+        color: #cbd5e1 !important;
+      }
+      html.dark .text-sky-700 {
+        color: #7dd3fc !important;
+      }
+      html.dark .hamburger span {
+        background: #f8fafc;
+      }
+      html.dark .bg-slate-900 {
+        background-color: #f8fafc !important;
+        color: #060913 !important;
+      }
+      /* Custom animations */
+      .scroll-reveal {
+        opacity: 0;
+        transform: translateY(32px);
+        transition: opacity 0.75s ease-out, transform 0.75s ease-out;
+      }
+      .scroll-reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      /* Touch-friendly tap targets */
+      .tap-target {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      /* Hamburger menu */
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        cursor: pointer;
+      }
+      .hamburger span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: #0f172a;
+        border-radius: 2px;
+        transition: all 0.3s ease;
+      }
+      @media (max-width: 767px) {
+        .hamburger { display: flex; }
+      }
+      .mobile-nav {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        padding: 1rem;
+        z-index: 60;
+      }
+      .mobile-nav.open {
+        display: flex;
+      }
+      .mobile-nav a {
+        padding: 1rem 0;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #0f172a;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+      .mobile-nav a:last-child {
+        border-bottom: none;
+      }
+      html.dark .mobile-nav {
+        background: rgba(15, 23, 42, 0.95) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.15) !important;
+      }
+      html.dark .mobile-nav a {
+        color: #f8fafc !important;
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      }
+    </style>
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+  <body class="antialiased bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900 overflow-x-hidden selection:bg-accent selection:text-white">
+    <!-- Three.js Canvas Background — covers entire viewport, fixed behind all content -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Scroll Progress Indicator -->
+    <div class="fixed top-0 left-0 w-full h-1 bg-slate-400/20 z-40 pointer-events-none">
+      <div id="scroll-progress" class="h-full bg-accent w-0 transition-all duration-100"></div>
+    </div>
+
+    <!-- Glassmorphic Fixed Navbar -->
+    <nav class="fixed top-0 left-0 w-full z-50 px-4 py-3 bg-white/90 backdrop-blur-2xl border-b border-slate-200 shadow-xl shadow-black/5">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a href="https://abmit-portfolio.vercel.app/" class="font-display text-xl font-bold tracking-tighter bg-accent text-white px-3 py-1 rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.3)] tap-target" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;">
+          ABM IT
+        </a>
+        <div class="flex items-center gap-1">
+          <!-- Desktop links -->
+          <div class="hidden md:flex gap-6 text-sm font-medium text-slate-600">
+            <a href="#about" class="hover:text-accent transition-colors tap-target py-2 px-3">About</a>
+            <a href="#software" class="hover:text-accent transition-colors tap-target py-2 px-3">Software</a>
+            <a href="#contact" class="hover:text-accent transition-colors tap-target py-2 px-3">Contact</a>
+          </div>
+          <button id="theme-toggle" class="text-slate-700 hover:text-accent transition-colors tap-target py-2 px-3" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <svg id="theme-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          </button>
+
+          <!-- Hamburger (mobile) -->
+          <button id="hamburger" class="hamburger md:hidden z-60 min-w-[44px] min-h-[44px] items-center justify-center" aria-label="Toggle menu" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile nav dropdown -->
+      <div id="mobileNav" class="mobile-nav md:hidden">
+        <a href="#about" class="tap-target">About</a>
+        <a href="#software" class="tap-target">Software</a>
+        <a href="#contact" class="tap-target">Contact</a>
+      </div>
+    </nav>
+
+    <main class="relative z-10 min-h-screen pt-20">
+      <!-- Hero Section — Glass Panel -->
+      <section class="relative min-h-[85vh] flex flex-col justify-center items-center px-4 py-8 scroll-reveal visible">
+        <div class="bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 md:p-12 max-w-4xl w-full text-center">
+          <span class="inline-block mb-4 md:mb-6 px-3 py-1 bg-accent/10 text-accent text-xs font-mono tracking-widest rounded-full border border-accent/20 shadow-[0_0_15px_rgba(14,165,233,0.2)]">
+            ABM IT · Software &amp; Digital Craft
+          </span>
+          <h1 class="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tighter mb-4 md:mb-6 text-slate-900 text-balance leading-[1.1]">
+            ABM Iftiazur Rahman
+          </h1>
+          <p class="text-base md:text-lg text-slate-700 font-medium leading-relaxed mb-6 md:mb-10 text-pretty">
+            Building offline-first web applications, Android tools, and interactive 3D experiences for everyday productivity.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="#software" class="inline-block px-8 py-4 md:px-10 md:py-5 bg-slate-900 text-white font-semibold rounded-full hover:bg-accent transition-all shadow-[0_0_25px_rgba(15,23,42,0.3)] hover:shadow-[0_0_40px_rgba(14,165,233,0.5)] tap-target">
+              Explore Software
+            </a>
+            <a href="https://github.com/mr0632817-sys" target="_blank" rel="noopener noreferrer" class="inline-block px-8 py-4 md:px-10 md:py-5 bg-white/90 border border-slate-200 text-slate-900 font-semibold rounded-full hover:bg-white transition-all tap-target">
+              GitHub Profile
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Section — Glass Panel -->
+      <section class="relative py-24 md:py-32 px-4 scroll-reveal" id="about">
+        <div class="bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 md:p-12 max-w-3xl mx-auto">
+          <div class="flex flex-col md:flex-row gap-8 md:gap-12">
+            <div class="flex-1">
+              <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tighter mb-6 text-slate-900 text-balance">About ABM Iftiazur Rahman</h2>
+              <p class="text-base md:text-lg text-slate-700 font-medium leading-relaxed mb-6 text-pretty">
+                I&rsquo;m <strong>ABM Iftiazur Rahman</strong>, an undergraduate student in Media, Communication &amp; Journalism (MCJ) at <strong>North South University (NSU)</strong>, Dhaka, and the Founder &amp; Builder at <strong>ABM IT</strong>.
+              </p>
+              <p class="text-base md:text-lg text-slate-700 font-medium leading-relaxed mb-6 text-pretty">
+                I build offline-first web applications, Android tools, and interactive 3D experiences — with zero backend, zero tracking, and everything running entirely on the user&rsquo;s device.
+              </p>
+              <h3 class="font-display text-xl md:text-2xl font-bold tracking-tight mb-3 text-slate-900">Core Engineering Principles</h3>
+              <ul class="space-y-3 text-slate-700 font-medium leading-relaxed">
+                <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Zero-Backend Privacy</strong> — No server, no database, no tracking. Data stays on the user&rsquo;s device.</li>
+                <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Bilingual (<span lang="bn" class="font-bengali">বাংলা</span> / English)</strong> — Fully localised Bangla and English interfaces.</li>
+                <li class="flex items-start gap-3"><span class="text-accent font-bold">▸</span> <strong>Cross-Platform</strong> — Web PWA + Android APK from a single codebase.</li>
+              </ul>
+            </div>
+            <div class="flex-1 flex justify-center">
+              <div class="aspect-square w-44 sm:w-56 rounded-full flex flex-col items-center justify-center text-center overflow-hidden p-4 mx-auto bg-white/90 border border-slate-200 backdrop-blur-md">
+                <span class="font-display text-2xl sm:text-3xl font-bold text-slate-900 whitespace-nowrap">ABM IT</span>
+                <span class="text-xs sm:text-sm font-medium text-slate-600 mt-1 whitespace-nowrap">Software &amp; Craft</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Software Section — Glass Panel with Card Grid -->
+      <section class="relative py-24 md:py-32 px-4 scroll-reveal" id="software">
+        <div class="bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 md:p-12 max-w-7xl mx-auto">
+          <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+            <div>
+              <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tighter mb-3 text-slate-900 text-balance">Flagship Software</h2>
+              <p class="text-slate-700 font-medium max-w-md">Production-ready applications built by ABM IT.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto px-4 sm:px-6">
+            <!-- Card 1: Project Hishab -->
+            <div class="group relative overflow-hidden bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:bg-white/95">
+              <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              <div>
+                <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-sky-700 font-semibold bg-sky-500/10 px-3 py-1 rounded-md mb-4">
+                  <span>01</span><span>·</span><span>PWA</span><span>·</span><span>Android APK</span><span>·</span><span>Offline-First</span><span>·</span><span class="font-bengali" lang="bn">বাংলা</span> / <span class="font-bengali" lang="bn">EN</span>
+                </div>
+                <h3 class="font-display text-xl md:text-2xl font-bold tracking-normal mb-3 text-slate-900"><span lang="bn" class="font-bengali">হিসাব</span> / Hishab</h3>
+                <p class="text-sm md:text-base text-slate-700 font-medium leading-relaxed mb-6 text-balance">
+                  A zero-server personal finance and budget manager built for Bangladesh. Features a smart daily spend-limit dial (&ldquo;<span lang="bn" class="font-bengali">আজ বাকি</span>&rdquo;), multi-wallet tracking (Cash, bKash, Nagad, Bank), category rollover budgets, savings goals, debt tracker, Zakat calculator, 4-digit PIN lock, and instant Excel (.xlsx), PDF, CSV &amp; JSON exports.
+                </p>
+              </div>
+              <div class="mt-6 pt-4 border-t border-slate-900/5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
+                <a href="https://mr0632817-sys.github.io/hishab-abmit/" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-sky-500 hover:bg-sky-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 shadow-sm transition">Open Web App</a>
+                <a href="https://github.com/mr0632817-sys/hishab-abmit" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-white/80 hover:bg-white text-slate-800 border border-slate-200/80 text-xs sm:text-sm font-semibold px-4 py-2.5 transition">GitHub Repo</a>
+              </div>
+            </div>
+
+            <!-- Card 2: Routina -->
+            <div class="group relative overflow-hidden bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:bg-white/95">
+              <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              <div>
+                <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-sky-700 font-semibold bg-sky-500/10 px-3 py-1 rounded-md mb-4">
+                  <span>02</span><span>·</span><span>PWA</span><span>·</span><span>ICS Calendar Sync</span><span>·</span><span>Canvas PNG/PDF</span><span>·</span><span>Offline</span>
+                </div>
+                <h3 class="font-display text-xl md:text-2xl font-bold tracking-tight mb-3 text-slate-900">Routina</h3>
+                <p class="text-sm md:text-base text-slate-700 font-medium leading-relaxed mb-6 text-balance">
+                  A distraction-free daily routine planner built for students. Supports custom repeat schedules, smart 4:00 AM day-boundary sorting, ready-made templates (University, Exam Week, Ramadan), one-click Google/Apple Calendar (.ics) alarm export, and native Canvas-rendered PNG &amp; multi-page PDF exports.
+                </p>
+              </div>
+              <div class="mt-6 pt-4 border-t border-slate-900/5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
+                <a href="https://mr0632817-sys.github.io/routina/" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-sky-500 hover:bg-sky-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 shadow-sm transition">Open Web App</a>
+                <a href="https://github.com/mr0632817-sys/routina" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-white/80 hover:bg-white text-slate-800 border border-slate-200/80 text-xs sm:text-sm font-semibold px-4 py-2.5 transition">GitHub Repo</a>
+              </div>
+            </div>
+
+            <!-- Card 3: Split Ledger -->
+            <div class="group relative overflow-hidden bg-white/90 backdrop-blur-2xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:bg-white/95">
+              <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              <div>
+                <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-sky-700 font-semibold bg-sky-500/10 px-3 py-1 rounded-md mb-4">
+                  <span>03</span><span>·</span><span>PWA</span><span>·</span><span>Smart Settlement</span><span>·</span><span>PDF &amp; Excel</span><span>·</span><span>Offline-First</span>
+                </div>
+                <h3 class="font-display text-xl md:text-2xl font-bold tracking-tight mb-3 text-slate-900">Split Ledger</h3>
+                <p class="text-sm md:text-base text-slate-700 font-medium leading-relaxed mb-6 text-balance">
+                  A group expense tracker and settlement engine for tours, trips, and monthly mess management. Automatically calculates individual net balances and optimal who-pays-whom settlement plans, with instant multi-sheet Excel (.xlsx), formatted PDF reports, and JSON backup/restore.
+                </p>
+              </div>
+              <div class="mt-6 pt-4 border-t border-slate-900/5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
+                <a href="https://mr0632817-sys.github.io/split-ledger/" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-sky-500 hover:bg-sky-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 shadow-sm transition">Open Web App</a>
+                <a href="https://github.com/mr0632817-sys/split-ledger" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-white/80 hover:bg-white text-slate-800 border border-slate-200/80 text-xs sm:text-sm font-semibold px-4 py-2.5 transition">GitHub Repo</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact Section — Glass Panel -->
+      <section class="relative py-24 md:py-32 px-4 scroll-reveal" id="contact">
+        <div class="max-w-3xl mx-auto rounded-3xl bg-white/90 backdrop-blur-2xl border border-slate-200 p-7 sm:p-10 text-center shadow-xl">
+          <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tighter mb-6 md:mb-8 text-slate-900 text-balance">Contact ABM IT</h2>
+          <p class="text-base md:text-lg text-slate-700 font-medium leading-relaxed mb-8 max-w-lg mx-auto text-balance">
+            Founder &amp; Builder at ABM IT. Have a project idea or want to collaborate?
+          </p>
+          <div class="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3.5 mt-6">
+            <a href="mailto:iftiazabm@gmail.com" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-medium max-w-full bg-white/90 border border-slate-200 hover:bg-white transition-all tap-target">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              iftiazabm@gmail.com
+            </a>
+            <a href="https://wa.me/8801312567083" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-medium max-w-full bg-[#25D366] text-white hover:bg-[#1eb756] transition-all tap-target shrink-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M22 12c0-4.9-3.9-8.8-8.8-8.8-3.7 0-7 2.2-8.4 5.5-1.4 3.3 1.1 6.6 3.6 7.5l.2.2c-.2.7-.2 1.4 0 2.1.3 1.1 1.3 2.1 2.5 1.8 2.1-.7 4.7-1.8 6.2-2.9-.6 1-.2 2.1.7 3 1 1 2.4 1.3 3.8.9 1.1-.5 2-1.2 2.7-1.8 1-.9 1.5-2.2 1.1-3.4-.1-1.3-1.4-2.5-3-2.9-.4-.1-.8-.2-1.2-.1-.6.2-1.2.7-1.7 1.3-1 .9-2.3 1.4-3.6 1.4-1.2 0-2.4-.2-3.5-.7l-.2-.2c.3-.5.5-1.1.5-1.8 0-1.3-.3-2.6-.9-3.6 1.5-.4 3-1 4.4-2 2-1.5 3.3-4 3-5.8 0-2.2-1.8-4-4-4-4.9 0-8.8 3.9-8.8 8.8 0 3.3 1.8 6.4 4.7 8 1 .7 2.2 1 3.4 1 .6 0 1.3-.1 1.9-.4 1.6-.7 2.9-2.2 3.4-4-.2-.5-.4-1-.4-1.6 0-1.8 1-3.2 2.3-4z"/></svg>
+              +880 1312-567083
+            </a>
+            <a href="https://github.com/mr0632817-sys" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-medium max-w-full bg-white/90 border border-slate-200 hover:bg-white transition-all tap-target shrink-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-4.82 0-2.8-2.25-4.8-5.21-4.8-3.3 0-6 .22-6.9 1.34a2.25 2.25 0 0 0-.1 2.25A1.74 1.74 0 0 0 5 13c-.53 0-.9.29-1.1.78a11 11 0 0 0 1.5 10c1.8-1.1 3.4-2.3 5-3.5a9 9 0 0 0 2.7-1.4 9.4 9.4 0 0 0 2.8-.1c6 0 6.6 0 7-.1.5-.4 1-.9 1.3-1.3l.1-.1c1.5-1.5 1.5-3 0-4.5a10 10 0 0 0-.6-1.5c.4-.3.8-.6 1.1-.9a4 4 0 0 0-.2-1.8c0-1.1-.9-2-2-2"/></svg>
+              github.com/mr0632817-sys
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="relative py-8 md:py-12 px-4 text-center">
+        <p class="text-xs text-slate-700 font-medium">
+          © 2026 ABM IT · Built by ABM Iftiazur Rahman
+        </p>
+      </footer>
+    </main>
+
+    <!-- Smooth scroll without hash fragments -->
+    <script>
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    </script>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
