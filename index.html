@@ -256,6 +256,64 @@
         color: #f8fafc !important;
         border-bottom-color: rgba(255, 255, 255, 0.1) !important;
       }
+      /* ===== Contact: Apple-style liquid glass ===== */
+      .contact-glass {
+        position: relative;
+        background: linear-gradient(160deg, rgba(255,255,255,0.92), rgba(255,255,255,0.78));
+        border: 1px solid rgba(255,255,255,0.9);
+        box-shadow:
+          0 30px 60px -20px rgba(15,23,42,0.25),
+          inset 0 1px 0 rgba(255,255,255,1),
+          inset 0 -1px 0 rgba(15,23,42,0.05);
+        backdrop-filter: blur(24px) saturate(160%);
+        -webkit-backdrop-filter: blur(24px) saturate(160%);
+      }
+      .contact-pill {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 56px;
+        padding: 0.75rem 1.1rem;
+        border-radius: 1.25rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #0f172a;
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(15,23,42,0.08);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 6px 18px -10px rgba(15,23,42,0.25);
+        transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, background .35s;
+        text-align: left;
+      }
+      .contact-pill:hover { transform: translateY(-2px); background: #fff; box-shadow: inset 0 1px 0 #fff, 0 14px 30px -12px rgba(15,23,42,0.35); }
+      .contact-pill:active { transform: scale(.98); }
+      .contact-pill:focus-visible { outline: 2px solid #0ea5e9; outline-offset: 3px; }
+      .contact-icon {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 36px; height: 36px;
+        border-radius: 999px;
+        color: #fff;
+        background: linear-gradient(145deg, #0f172a, #334155);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+      }
+      .contact-pill .truncate { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+      .contact-arrow { flex: none; color: #64748b; opacity: 0; transform: translate(-4px, 4px); transition: .35s; }
+      .contact-pill:hover .contact-arrow { opacity: 1; transform: none; }
+      html.dark .contact-glass {
+        background: linear-gradient(160deg, rgba(30,41,59,0.7), rgba(15,23,42,0.55));
+        border-color: rgba(255,255,255,0.12);
+        box-shadow: 0 30px 60px -20px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08);
+      }
+      html.dark .contact-pill { color: #f8fafc; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+      html.dark .contact-pill:hover { background: rgba(255,255,255,0.1); }
+      html.dark .contact-icon { background: linear-gradient(145deg, #7dd3fc, #38bdf8); color: #06121f; }
+      html.dark .contact-arrow { color: #94a3b8; }
+      @media (max-width: 767px) {
+        .contact-glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(255,255,255,0.95); }
+        html.dark .contact-glass { background: rgba(15,23,42,0.92); }
+      }
     </style>
   </head>
   <body class="antialiased bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900 overflow-x-hidden selection:bg-accent selection:text-white">
@@ -425,24 +483,29 @@
       </section>
 
       <!-- Contact Section — Glass Panel -->
+      <!-- Contact Section — Glass Panel -->
       <section class="relative py-24 md:py-32 px-4 scroll-reveal" id="contact">
-        <div class="max-w-3xl mx-auto rounded-3xl bg-white/90 backdrop-blur-2xl border border-slate-200 p-7 sm:p-10 text-center shadow-xl">
-          <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tighter mb-6 md:mb-8 text-slate-900 text-balance">Contact ABM IT</h2>
-          <p class="text-base md:text-lg text-slate-700 font-medium leading-relaxed mb-8 max-w-lg mx-auto text-balance">
+        <div class="contact-glass max-w-3xl mx-auto rounded-[2rem] p-7 sm:p-12 text-center">
+          <p class="text-xs font-semibold tracking-[0.2em] uppercase text-slate-500 mb-4">Get in touch</p>
+          <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tight mb-5 text-slate-900 text-balance">Contact ABM IT</h2>
+          <p class="text-base md:text-lg text-slate-700 font-medium leading-relaxed mb-10 max-w-lg mx-auto text-balance">
             Founder &amp; Builder at ABM IT. Have a project idea or want to collaborate?
           </p>
-          <div class="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-3 sm:gap-3.5 mt-6">
-            <a href="mailto:iftiazabm@gmail.com" class="w-full max-w-xs mx-auto sm:w-auto sm:max-w-none sm:mx-0 inline-flex items-center justify-center gap-2.5 min-h-[46px] px-5 py-3 rounded-full text-sm font-medium bg-white/90 border border-slate-200 hover:bg-white transition-all tap-target">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px] shrink-0" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-              <span class="leading-none whitespace-nowrap">iftiazabm@gmail.com</span>
+          <div class="grid gap-3 sm:grid-cols-3 max-w-3xl mx-auto">
+            <a href="mailto:iftiazabm@gmail.com" class="contact-pill group">
+              <span class="contact-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="M3 6.5l9 6.5 9-6.5"/></svg></span>
+              <span class="truncate">iftiazabm@gmail.com</span>
+              <svg class="contact-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
             </a>
-            <a href="https://wa.me/8801312567083" target="_blank" rel="noopener noreferrer" class="w-full max-w-xs mx-auto sm:w-auto sm:max-w-none sm:mx-0 inline-flex items-center justify-center gap-2.5 min-h-[46px] px-5 py-3 rounded-full text-sm font-medium bg-[#25D366] text-white hover:bg-[#1eb756] transition-all tap-target shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="w-[18px] h-[18px] shrink-0" aria-hidden="true"><path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.758.459 3.473 1.332 4.986L2 22l5.188-1.361a9.93 9.93 0 0 0 4.843 1.26h.004c5.515 0 9.968-4.453 9.968-9.969A9.91 9.91 0 0 0 19.08 4.92 9.91 9.91 0 0 0 12.031 2zm5.816 14.277c-.246.693-1.434 1.326-1.984 1.408-.506.076-1.146.108-1.85-.115-.426-.135-.973-.316-1.674-.619-2.946-1.272-4.87-4.24-5.017-4.436-.147-.196-1.198-1.594-1.198-3.04 0-1.446.758-2.157 1.027-2.451.27-.294.588-.368.784-.368.196 0 .392.002.564.01.181.009.424-.069.663.506.246.59.836 2.037.909 2.184.074.147.123.319.025.515-.098.196-.147.319-.294.49-.147.172-.309.383-.441.515-.147.147-.3.306-.129.6.172.294.762 1.257 1.636 2.036 1.124 1.002 2.072 1.313 2.366 1.46.294.147.466.123.638-.074.172-.196.736-.858.932-1.152.196-.294.392-.245.662-.147.27.098 1.716.809 2.01.956.294.147.49.221.564.343.073.123.073.711-.173 1.404z"/></svg>
-              <span class="leading-none whitespace-nowrap">+880 1312-567083</span>
+            <a href="https://wa.me/8801312567083" target="_blank" rel="noopener noreferrer" class="contact-pill group">
+              <span class="contact-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.7-5A8.5 8.5 0 1 1 21 11.5z"/></svg></span>
+              <span class="truncate">+880 1312-567083</span>
+              <svg class="contact-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
             </a>
-            <a href="https://github.com/mr0632817-sys" target="_blank" rel="noopener noreferrer" class="w-full max-w-xs mx-auto sm:w-auto sm:max-w-none sm:mx-0 inline-flex items-center justify-center gap-2.5 min-h-[46px] px-5 py-3 rounded-full text-sm font-medium bg-white/90 border border-slate-200 hover:bg-white transition-all tap-target shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="w-[18px] h-[18px] shrink-0" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-              <span class="leading-none whitespace-nowrap">github.com/mr0632817-sys</span>
+            <a href="https://github.com/mr0632817-sys" target="_blank" rel="noopener noreferrer" class="contact-pill group">
+              <span class="contact-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.5 1.5-4.5-2.5-6.5-3M15 22v-3.5a3.2 3.2 0 0 0-.9-2.5c3-.3 6.1-1.5 6.1-6.6a5.1 5.1 0 0 0-1.4-3.5 4.7 4.7 0 0 0-.1-3.5s-1.1-.3-3.6 1.3a12.3 12.3 0 0 0-6.4 0C6.2 2.7 5.1 3 5.1 3a4.7 4.7 0 0 0-.1 3.5A5.1 5.1 0 0 0 3.6 10c0 5.1 3.1 6.3 6.1 6.6A3.2 3.2 0 0 0 8.8 19v3.5"/></svg></span>
+              <span class="truncate">mr0632817-sys</span>
+              <svg class="contact-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
             </a>
           </div>
         </div>
