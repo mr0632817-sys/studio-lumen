@@ -47,7 +47,7 @@ if ('IntersectionObserver' in window && !reduceMotion.matches) {
 const canvas = document.getElementById('scene');
 let renderer = null;
 try {
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile(), alpha: true, powerPreference: 'high-performance' });
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
 } catch (err) {
   canvas.style.display = 'none';
 }
@@ -91,14 +91,15 @@ if (renderer) {
 
   // Two fine metallic rings
   const ringMat = new THREE.MeshStandardMaterial({ color: 0xbfd4ff, metalness: 1, roughness: 0.2, transparent: isMobile() });
-  const ringA = new THREE.Mesh(new THREE.TorusGeometry(2.55, 0.012, 16, 220), ringMat);
-  const ringB = new THREE.Mesh(new THREE.TorusGeometry(3.05, 0.008, 16, 220), ringMat);
+  const tube = isMobile() ? 0.03 : 0.012;
+  const ringA = new THREE.Mesh(new THREE.TorusGeometry(2.55, tube, 24, 240), ringMat);
+  const ringB = new THREE.Mesh(new THREE.TorusGeometry(3.05, tube * 0.7, 24, 240), ringMat);
   ringA.rotation.set(1.15, 0, 0.3);
   ringB.rotation.set(0.45, 0.9, 0);
   scene.add(ringA, ringB);
 
   // Soft depth particles
-  const count = isMobile() ? 160 : 360;
+  const count = isMobile() ? 70 : 360;
   const dots = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
     const r = 6 + Math.random() * 9;
@@ -132,7 +133,7 @@ if (renderer) {
   // Scroll path: the orb moves between the sections it sits beside
   // Desktop: hero text left -> orb right; about card right -> orb left; products -> centre; contact left -> orb right
   const DESKTOP = [[0.72, 0.1, 1], [-0.72, 0, 0.95], [0, -0.3, 1.12], [0.72, 0.1, 1]];
-  const MOBILE  = [[0, 2.1, 0.55], [0, 2.1, 0.5], [0, 2.1, 0.5], [0, 2.1, 0.5]];
+  const MOBILE  = [[0, 2.15, 0.46], [0, 2.15, 0.44], [0, 2.15, 0.44], [0, 2.15, 0.44]];
   const halfWidth = () => Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z * camera.aspect;
   const stops = () => (isMobile() ? MOBILE : DESKTOP);
 
@@ -161,7 +162,7 @@ if (renderer) {
     const h = canvas.clientHeight || window.innerHeight;
     if (force !== true && w === lastW && Math.abs(h - lastH) < 150) return; // browser toolbar show/hide
     lastW = w; lastH = h;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile() ? 1.25 : 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.position.z = isMobile() ? 11 : 9;
