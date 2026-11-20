@@ -47,7 +47,7 @@ if ('IntersectionObserver' in window && !reduceMotion.matches) {
 const canvas = document.getElementById('scene');
 let renderer = null;
 try {
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile(), alpha: true, powerPreference: 'high-performance' });
 } catch (err) {
   canvas.style.display = 'none';
 }
@@ -85,11 +85,12 @@ if (renderer) {
     iridescence: 0.55, iridescenceIOR: 1.35,
     envMapIntensity: 1.1,
   });
+  if (isMobile()) { material.iridescence = 0; material.transparent = true; }
   const orb = new THREE.Mesh(base, material);
   scene.add(orb);
 
   // Two fine metallic rings
-  const ringMat = new THREE.MeshStandardMaterial({ color: 0xbfd4ff, metalness: 1, roughness: 0.2 });
+  const ringMat = new THREE.MeshStandardMaterial({ color: 0xbfd4ff, metalness: 1, roughness: 0.2, transparent: isMobile() });
   const ringA = new THREE.Mesh(new THREE.TorusGeometry(2.55, 0.012, 16, 220), ringMat);
   const ringB = new THREE.Mesh(new THREE.TorusGeometry(3.05, 0.008, 16, 220), ringMat);
   ringA.rotation.set(1.15, 0, 0.3);
@@ -131,7 +132,7 @@ if (renderer) {
   // Scroll path: the orb moves between the sections it sits beside
   // Desktop: hero text left -> orb right; about card right -> orb left; products -> centre; contact left -> orb right
   const DESKTOP = [[0.72, 0.1, 1], [-0.72, 0, 0.95], [0, -0.3, 1.12], [0.72, 0.1, 1]];
-  const MOBILE  = [[0, 2.4, 0.55], [0, 3.0, 0.5], [0, 3.3, 0.45], [0, 3.3, 0.45]];
+  const MOBILE  = [[0, 2.1, 0.55], [0, 2.1, 0.5], [0, 2.1, 0.5], [0, 2.1, 0.5]];
   const halfWidth = () => Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z * camera.aspect;
   const stops = () => (isMobile() ? MOBILE : DESKTOP);
 
@@ -154,29 +155,51 @@ if (renderer) {
     pointerY = (e.clientY / window.innerHeight) * 2 - 1;
   }, { passive: true });
 
-  function resize() {
-    const w = window.innerWidth, h = window.innerHeight;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile() ? 1.5 : 2));
+  let lastW = 0, lastH = 0;
+  function resize(force) {
+    const w = canvas.clientWidth || window.innerWidth;
+    const h = canvas.clientHeight || window.innerHeight;
+    if (force !== true && w === lastW && Math.abs(h - lastH) < 150) return; // browser toolbar show/hide
+    lastW = w; lastH = h;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile() ? 1.25 : 2));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.position.z = isMobile() ? 11 : 9;
     camera.updateProjectionMatrix();
   }
   let rt;
-  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resize, 120); });
-  resize();
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => resize(), 120); });
+  resize(true);
   onScroll();
   smoothP = targetP;
 
   const clock = new THREE.Clock();
-  let t = 0;
-  function frame() {
+  let t = 0, lastDraw = 0, emptied = false;
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const mobile = isMobile();
+    if (mobile && now - lastDraw < 14) return;       // cap at ~60fps on 120Hz phones
+    lastDraw = now;
+
     const dt = Math.min(clock.getDelta(), 0.05);
     t += dt;
-    const k = 1 - Math.exp(-dt * 3.2);           // frame-rate independent smoothing
+    const k = 1 - Math.exp(-dt * 3.2);               // frame-rate independent smoothing
     smoothP += (targetP - smoothP) * k;
     smoothX += (pointerX - smoothX) * (1 - Math.exp(-dt * 2));
     smoothY += (pointerY - smoothY) * (1 - Math.exp(-dt * 2));
+
+    // Phones: the orb belongs to the hero. Fade it out and stop drawing once scrolled past it.
+    const fade = mobile ? clamp01(1 - (window.scrollY || 0) / (window.innerHeight * 0.7)) : 1;
+    const show = fade > 0.01;
+    orb.visible = ringA.visible = ringB.visible = particles.visible = show;
+    if (!show) {
+      if (!emptied) { renderer.render(scene, camera); emptied = true; }
+      return;
+    }
+    emptied = false;
+    material.opacity = fade;
+    ringMat.opacity = fade;
+    dotMat.opacity = 0.5 * fade;
 
     const p = pathAt(smoothP);
     const bob = reduceMotion.matches ? 0 : Math.sin(t * 0.7) * 0.1;
@@ -196,7 +219,6 @@ if (renderer) {
     camera.lookAt(0, 0, 0);
 
     renderer.render(scene, camera);
-    requestAnimationFrame(frame);
   }
   // Keep the loop cheap: pause work when the tab is hidden
   document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
