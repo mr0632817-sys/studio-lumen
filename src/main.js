@@ -249,24 +249,24 @@ function initThree() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(onResize, 120);
   });
-  window.addEventListener(
-    'mousemove',
-    (e) => {
-      pointerX = (e.clientX / window.innerWidth) * 2 - 1;
-      pointerY = (e.clientY / window.innerHeight) * 2 - 1;
-    },
-    { passive: true }
-  );
+  window.addEventListener('mousemove', onMouseMove, { passive: true });
   window.addEventListener('scroll', onScroll, { passive: true });
-  document.addEventListener('visibilitychange', () => {
-    isPaused = document.hidden;
-    if (!isPaused && animationId === null && !prefersReducedMotion) {
-      clock.getDelta();
-      animate();
-    }
-  });
+  document.addEventListener('visibilitychange', onVisibilityChange, { passive: true });
   onScroll();
   smoothProgress = targetProgress;
+}
+
+function onMouseMove(e) {
+  pointerX = (e.clientX / window.innerWidth) * 2 - 1;
+  pointerY = (e.clientY / window.innerHeight) * 2 - 1;
+}
+
+function onVisibilityChange() {
+  isPaused = document.hidden;
+  if (!isPaused && animationId === null && !prefersReducedMotion) {
+    clock.getDelta();
+    animate();
+  }
 }
 
 function onResize() {
@@ -333,6 +333,75 @@ function animate() {
 }
 
 // ============================================================================
+// Three.js resource disposal (cleanup on page unload / re-init)
+// ============================================================================
+function dispose() {
+  // Stop the render loop
+  if (animationId !== null) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
+  isPaused = true;
+
+  // Dispose materials
+  const disposeMaterial = (m) => {
+    if (!m) return;
+    if (Array.isArray(m)) {
+      m.forEach(disposeMaterial);
+      return;
+    }
+    if (m.map) m.map.dispose();
+    if (m.envMap) m.envMap.dispose();
+    if (m.alphaMap) m.alphaMap.dispose();
+    if (m.bumpMap) m.bumpMap.dispose();
+    if (m.normalMap) m.normalMap.dispose();
+    if (m.displacementMap) m.displacementMap.dispose();
+    if (m.roughnessMap) m.roughnessMap.dispose();
+    if (m.metalnessMap) m.metalnessMap.dispose();
+    if (m.emissiveMap) m.emissiveMap.dispose();
+    if (m.gradientMap) m.gradientMap.dispose();
+    if (m.specularMap) m.specularMap.dispose();
+    if (m.lightMap) m.lightMap.map.dispose && m.lightMap.dispose();
+    m.dispose();
+  };
+
+  // Dispose geometries
+  const disposeGeometry = (g) => {
+    if (!g) return;
+    if (g.geometry) disposeGeometry(g.geometry);
+    g.dispose();
+  };
+
+  [hero, innerCore, edges, ringA, ringB, stars].forEach((obj) => {
+    if (!obj) return;
+    if (obj.geometry) disposeGeometry(obj.geometry);
+    if (obj.material) disposeMaterial(obj.material);
+    if (obj.parent) obj.parent.remove(obj);
+  });
+
+  if (envTex) envTex.dispose();
+
+  // Dispose renderer
+  if (renderer) {
+    renderer.renderLists.dispose();
+    renderer.dispose();
+    renderer = null;
+  }
+
+  scene = null;
+  camera = null;
+  clock = null;
+  hero = edges = innerCore = ringA = ringB = stars = envTex = keyLight = rimLight = null;
+
+  // Remove window listeners
+  window.removeEventListener('resize', onResize);
+  window.removeEventListener('mousemove', onMouseMove);
+  window.removeEventListener('scroll', onScroll);
+  window.removeEventListener('scroll', updateProgress);
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+}
+
+// ============================================================================
 // Scroll Reveals (fail-safe so sections can never stay hidden)
 // ============================================================================
 function initScrollReveals() {
@@ -379,16 +448,19 @@ function initScrollReveals() {
 // ============================================================================
 // Scroll progress bar
 // ============================================================================
-function initScrollProgress() {
-  const progressBar = document.getElementById('scroll-progress');
-  if (!progressBar) return;
+let progressBarEl = null;
 
-  function updateProgress() {
-    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
-    progressBar.style.width = scrolled + '%';
-  }
+function updateProgress() {
+  if (!progressBarEl) return;
+  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+  progressBarEl.style.width = scrolled + '%';
+}
+
+function initScrollProgress() {
+  progressBarEl = document.getElementById('scroll-progress');
+  if (!progressBarEl) return;
 
   window.addEventListener('scroll', updateProgress, { passive: true });
   updateProgress();
@@ -515,6 +587,9 @@ function init() {
   initThemeToggle();
   initCopyEmail();
   initThree();
+
+  // Clean up Three.js resources on page unload
+  window.addEventListener('beforeunload', dispose, { passive: true });
 
   if (!prefersReducedMotion && hero) {
     animate();
