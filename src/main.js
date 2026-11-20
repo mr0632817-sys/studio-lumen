@@ -12,7 +12,10 @@ let prefersReducedMotion = false;
 let animationId = null;
 let targetProgress = 0;
 let smoothProgress = 0;
+let maxScroll = 0; // cached/stabilized scroll height range
 let pointerX = 0, pointerY = 0, smoothX = 0, smoothY = 0;
+let lastWidth = window.innerWidth;
+let lastHeight = window.innerHeight;
 
 const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 const isDark = () => document.documentElement.classList.contains('dark');
@@ -182,9 +185,9 @@ function initThree() {
       color: 0x1e293b,
       metalness: 0.84,
       roughness: 0.16,
-      clearcoat: 1,
+      clearcoat: isMobile ? 0 : 1,
       clearcoatRoughness: 0.08,
-      iridescence: 0.45,
+      iridescence: isMobile ? 0 : 0.45,
       iridescenceIOR: 1.38,
       envMapIntensity: 1.25,
       flatShading: true,
@@ -270,18 +273,42 @@ function onVisibilityChange() {
 }
 
 function onResize() {
-  isMobile = window.innerWidth < 768;
-  camera.aspect = window.innerWidth / Math.max(window.innerHeight, 1);
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const widthChanged = width !== lastWidth;
+  const heightChanged = height !== lastHeight;
+  const significantHeightChange = Math.abs(height - lastHeight) >= 150;
+
+  lastWidth = width;
+  lastHeight = height;
+  isMobile = width < 768;
+
+  // On mobile, ignore height-only changes smaller than 150px. These are caused
+  // by the browser URL bar / toolbars showing or hiding while the user scrolls
+  // — without this guard the camera z, aspect ratio, and canvas size jump
+  // mid-scroll, producing visible 3D jitter near the bottom of the page.
+  // Only resize when the width changes (orientation) or height changes by
+  // >= 150px (real layout change).
+  if (isMobile && !widthChanged && !significantHeightChange) {
+    return;
+  }
+
+  camera.aspect = width / Math.max(height, 1);
   camera.position.z = computeCameraZ();
   camera.updateProjectionMatrix();
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(width, height);
   if (prefersReducedMotion) onScroll();
 }
 
 function onScroll() {
   const max = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-  targetProgress = max > 0 ? (window.scrollY || document.documentElement.scrollTop) / max : 0;
+  maxScroll = max > 0 ? max : 0; // cache/stabilize so it isn't recomputed erratically
+  const raw = maxScroll > 0 ? (window.scrollY || document.documentElement.scrollTop) / maxScroll : 0;
+  // Clamp targetProgress between 0 and 1 so mobile rubber-band overscroll
+  // (scrollY > maxScroll at the bottom, or scrollY < 0 at the top) cannot
+  // produce sudden velocity snaps in the crystal animation.
+  targetProgress = Math.min(Math.max(raw, 0), 1);
   if (prefersReducedMotion && hero) {
     smoothProgress = targetProgress;
     renderFrame(0, 0);
@@ -289,10 +316,16 @@ function onScroll() {
 }
 
 function renderFrame(delta, elapsed) {
-  const damp = 1 - Math.exp(-delta * 4);
-  smoothProgress += (targetProgress - smoothProgress) * (delta ? damp : 1);
-  smoothX += (pointerX - smoothX) * (delta ? 1 - Math.exp(-delta * 3) : 1);
-  smoothY += (pointerY - smoothY) * (delta ? 1 - Math.exp(-delta * 3) : 1);
+  // Cap delta so frame spikes never cause visual jumps.
+  const cappedDelta = Math.min(Math.max(delta, 0), 0.05);
+  // Smoother damping on mobile so the crystal glides without snapping all the
+  // way to the footer; desktop keeps the original factor.
+  const damp = isMobile
+    ? 1 - Math.exp(-cappedDelta * 6)
+    : 1 - Math.exp(-cappedDelta * 4);
+  smoothProgress += (targetProgress - smoothProgress) * (cappedDelta ? damp : 1);
+  smoothX += (pointerX - smoothX) * (cappedDelta ? 1 - Math.exp(-cappedDelta * 3) : 1);
+  smoothY += (pointerY - smoothY) * (cappedDelta ? 1 - Math.exp(-cappedDelta * 3) : 1);
 
   const p = pathAt(smoothProgress);
   const bob = Math.sin(elapsed * 0.65) * 0.11;
