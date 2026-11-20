@@ -1,25 +1,52 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-  body {
-    @apply antialiased;
-  }
+:root {
+  /* Light Mode: Solar Studio */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --accent-primary: #4f46e5;
+  --accent-secondary: #0284c7;
+  --accent-glow: rgba(79, 70, 229, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --grid-line: rgba(15, 23, 42, 0.035);
 }
 
-@layer components {
-  .scroll-reveal {
-    opacity: 0;
-    transform: translateY(28px);
-    transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .scroll-reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.dark {
+  /* Night Mode: Deep Orbit */
+  --bg-primary: #06080d;
+  --bg-secondary: #0c101a;
+  --bg-elevated: #131927;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-primary: #38bdf8;
+  --accent-secondary: #818cf8;
+  --accent-glow: rgba(56, 189, 248, 0.16);
+  --glass-bg: rgba(12, 16, 26, 0.74);
+  --border-subtle: rgba(241, 245, 249, 0.09);
+  --grid-line: rgba(241, 245, 249, 0.03);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.35s ease, color 0.35s ease;
+  overflow-x: hidden;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+.bg-orbital-grid {
+  background-size: 48px 48px;
+  background-image: 
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
 }
