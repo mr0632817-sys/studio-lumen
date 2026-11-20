@@ -104,8 +104,8 @@ html.dark .i-moon { display: none; }
   max-width: 1200px; margin: 0 auto;
 }
 .hero h1 {
-  font-size: clamp(40px, 7vw, 92px); font-weight: 700; letter-spacing: -0.035em;
-  max-width: 13ch;
+  font-size: clamp(38px, 6.4vw, 84px); font-weight: 700; letter-spacing: -0.035em;
+  max-width: 16ch; text-wrap: balance;
 }
 .hero .lead { font-size: clamp(17px, 1.6vw, 21px); max-width: 52ch; margin-top: 22px; }
 .hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
@@ -138,6 +138,8 @@ html.dark .i-moon { display: none; }
 }
 html.dark .glass::before { background: linear-gradient(160deg, rgba(255,255,255,.08), transparent 40%); }
 #about .glass { max-width: 760px; }
+.contact { max-width: 760px; }
+@media (min-width: 1024px) { #about .glass { margin-left: auto; } }
 #about p { font-size: 17px; max-width: 62ch; }
 .chips { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 12px; }
 .chips li {
@@ -153,7 +155,8 @@ html.dark .glass::before { background: linear-gradient(160deg, rgba(255,255,255,
 .card .tag { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
 .card h3 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
 .card p { font-size: 15px; flex: 1; }
-.card-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.card-actions .btn { padding: 0 12px; }
 
 /* Buttons */
 .btn {
@@ -173,7 +176,6 @@ html.dark .glass::before { background: linear-gradient(160deg, rgba(255,255,255,
 .contact { text-align: left; }
 .contact p { max-width: 56ch; }
 .contact-grid { display: grid; gap: 12px; margin-top: 28px; grid-template-columns: 1fr; }
-@media (min-width: 720px) { .contact-grid { grid-template-columns: repeat(3, 1fr); } }
 .pill {
   display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 0 18px;
   border-radius: 20px; background: var(--pill); border: 1px solid var(--line);
@@ -191,7 +193,8 @@ html.dark .glass::before { background: linear-gradient(160deg, rgba(255,255,255,
 
 /* Mobile tuning: lighter glass, no costly blur over the canvas */
 @media (max-width: 767px) {
-  .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in srgb, var(--glass) 100%, var(--bg)); }
+  .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(255,255,255,0.94); }
+  html.dark .glass { background: rgba(15,23,42,0.94); }
   .block { padding: 72px 18px; }
   .hero { padding-top: 110px; }
 }

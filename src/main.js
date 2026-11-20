@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import './style.css';
 
 const root = document.documentElement;
@@ -62,7 +63,10 @@ if (renderer) {
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
   // Organic, polished sculpture: a subdivided sphere with a fixed, smooth displacement
-  const base = new THREE.IcosahedronGeometry(1.5, 5);
+  let base = new THREE.IcosahedronGeometry(1.5, 7);
+  base.deleteAttribute('normal');
+  base.deleteAttribute('uv');
+  base = mergeVertices(base);
   const pos = base.attributes.position;
   const v = new THREE.Vector3();
   for (let i = 0; i < pos.count; i++) {
@@ -117,7 +121,7 @@ if (renderer) {
 
   applySceneTheme = function applyThemeToScene() {
     const dark = root.classList.contains('dark');
-    material.color.set(dark ? 0x7f98d6 : 0xb9c9e8);
+    material.color.set(dark ? 0x7f98d6 : 0x8aa0cc);
     ringMat.color.set(dark ? 0xc7d8ff : 0x9fb0c9);
     dotMat.color.set(dark ? 0xbfd4ff : 0x475569);
     key.intensity = dark ? 1.4 : 1.0;
@@ -125,8 +129,10 @@ if (renderer) {
   applySceneTheme();
 
   // Scroll path: the orb moves between the sections it sits beside
-  const DESKTOP = [[3.3, 0.2, 1], [-3.4, -0.1, 0.92], [3.1, -0.15, 1.0], [-3.2, 0.1, 0.95]];
-  const MOBILE  = [[0, 2.1, 0.6], [0, 2.3, 0.55], [0, 2.3, 0.55], [0, 2.3, 0.55]];
+  // Desktop: hero text left -> orb right; about card right -> orb left; products -> centre; contact left -> orb right
+  const DESKTOP = [[0.72, 0.1, 1], [-0.72, 0, 0.95], [0, -0.3, 1.12], [0.72, 0.1, 1]];
+  const MOBILE  = [[0, 2.4, 0.55], [0, 3.0, 0.5], [0, 3.3, 0.45], [0, 3.3, 0.45]];
+  const halfWidth = () => Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z * camera.aspect;
   const stops = () => (isMobile() ? MOBILE : DESKTOP);
 
   function pathAt(p) {
@@ -134,7 +140,8 @@ if (renderer) {
     const seg = Math.min(Math.floor(p * (s.length - 1)), s.length - 2);
     const t = ease(clamp01(p * (s.length - 1) - seg));
     const a = s[seg], b = s[seg + 1];
-    return { x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t, s: a[2] + (b[2] - a[2]) * t };
+    const x = a[0] + (b[0] - a[0]) * t;
+    return { x: isMobile() ? x : x * halfWidth(), y: a[1] + (b[1] - a[1]) * t, s: a[2] + (b[2] - a[2]) * t };
   }
 
   let targetP = 0, smoothP = 0;
